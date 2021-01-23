@@ -15,10 +15,14 @@ function insertNewInputLine(params) {
     const newLineWrapperElement = document.createElement('div');
     newLineWrapperElement.classList = 'lineWrapper';
 
+    newLineWrapperElement.onclick = (click) => {
+        newLineWrapperElement.querySelector('input').focus();
+    }
+
     const newInputLine = document.createElement('input');
     newInputLine.classList = 'inputLine';
 
-    newInputLine.onkeypress = (keypress) => {
+    newInputLine.onkeyup = (keyup) => {
         if (newInputLine.value !== '') {
             newLineWrapperElement.classList.add('filled');
         }
@@ -42,7 +46,7 @@ function insertNewInputLine(params) {
                 
                 if (parentPageElement.dataset.numberOfLines > 1) {
                     newLineWrapperElement.remove();
-                    newLineWrapperElement.dataset.numberOfLines--;
+                    parentPageElement.dataset.numberOfLines--;
                 }
             }
         } else if (keydown.key === 'ArrowUp') {
@@ -60,6 +64,10 @@ function insertNewInputLine(params) {
         const selection = getSelectionData(newInputLine);
 
         console.log(selection);
+    }
+    
+    newInputLine.onblur = (blur) => {
+        blur.preventDefault();
     }
     
     const newTranslationInputLine = document.createElement('input');
@@ -82,7 +90,7 @@ function insertNewInputLine(params) {
             params.position.after.parentNode.insertBefore(newLineWrapperElement, params.position.after.nextSibling);
         }
     }
-    
+
     parentPageElement.dataset.numberOfLines++;
     
     newInputLine.focus();
@@ -102,6 +110,19 @@ function render() {
     renderPage({
         pageElement: document.querySelector('.page')
     });
+
+    setTimeout(function() {
+        const allLineWrappers = document.querySelectorAll('.lineWrapper');
+        allLineWrappers[0].querySelector('input').focus();
+    }, 10);
+
+    document.onclick = (click) => {
+        if (click.target.tagName === 'HTML' || click.target.tagName === 'BODY') {
+            click.preventDefault();
+            const allLineWrappers = document.querySelectorAll('.lineWrapper');
+            allLineWrappers[allLineWrappers.length - 1].querySelector('input').focus();
+        }
+    } 
 }
 
 render();

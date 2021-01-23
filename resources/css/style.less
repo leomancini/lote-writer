@@ -4,60 +4,66 @@
 }
 
 html {
-	background: rgba(0, 0, 0, 0.03);
+	background: rgba(255, 255, 255, 1);
+	// padding: 50px;
 	margin: 0;
 
 	body {
-		margin: 50px;
+		margin: 0;
 
-		.page {
-			background: rgba(255, 255, 255, 1);
-			width: 600px;
-			margin: 0 auto;
-			padding: 30px;
-			border-radius: 20px;
-			box-shadow: 0px 2px 44px rgba(0, 0, 0, 0.05);
-
-			.lineWrapper {
-				&.filled {
-					.translationInputLine {
-						height: 18px;
-						padding: 8px;
-						margin-top: 0;
-						margin-left: -8px;
-					}
-
-					&:hover {
-						.translationInputLine {
-							opacity: 1;
-							background: rgba(0, 0, 0, 0.03);
+		#pages {
+			margin-top: 100px;
+			
+			.page {
+				background: rgba(255, 255, 255, 1);
+				margin: 0 auto;
+	
+				.lineWrapper {
+					padding: 0 300px;
+					// &.filled {
+					// 	.translationInputLine {
+					// 		height: 18px;
+					// 		padding: 12px;
+					// 	}
+	
+					// 	&:hover {
+					// 		.translationInputLine {
+					// 			opacity: 1;
+					// 			background: rgba(0, 0, 0, 0.03);
+					// 		}
+					// 	}
+					// }
+	
+					&.filled {
+						.inputLine {
+	
 						}
 					}
-				}
-
-				.inputLine {
-					width: 100%;
-					outline: none;
-					border: none;
-					font-size: 24px;
-					padding: 8px 0;
-				}
 	
-				.translationInputLine {
-					width: 100%;
-					outline: none;
-					border: none;
-					font-size: 16px;
-					color: rgba(0, 0, 0, 0.7);
-					border-radius: 5px;
-					opacity: 0;
-					height: 0;
-					padding: 0;
-					float: left;
-					transition: 0.2s opacity;
-
-					&.filled {
-						opacity: 1;
+					.inputLine {
+						width: 100%;
+						outline: none;
+						border: none;
+						font-size: 24px;
+						padding: 8px 0;
+					}
+		
+					.translationInputLine {
+						width: 100%;
+						outline: none;
+						border: none;
+						color: rgba(0, 0, 0, 0.7);
+						border-radius: 12px;
+						height: 0;
+						padding: 0;
+						font-size: 0;
+						opacity: 0;
+						float: left;
+						transition: 0.2s opacity;
+	
+						&.filled {
+							opacity: 1;
+						}
 					}
 				}
 			}
