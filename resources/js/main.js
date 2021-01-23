@@ -17,6 +17,7 @@ function insertNewInputLine(params) {
 
     newLineWrapperElement.onclick = (click) => {
         newLineWrapperElement.querySelector('input').focus();
+        // TODO: Reset caret position / remove selection when focused
     }
 
     const newInputLine = document.createElement('input');
@@ -32,6 +33,8 @@ function insertNewInputLine(params) {
         const selection = getSelectionData(newInputLine);
 
         if (keydown.key === 'Enter') {
+            // TODO: Figure out how to do this when IME window is visible
+            // and Enter is used to select character candidate
             insertNewInputLine({
                 parentPageElement: params.parentPageElement,
                 position: {
@@ -61,6 +64,7 @@ function insertNewInputLine(params) {
     }
 
     newInputLine.onmouseup = (mouseup) => {
+        // TODO: Figure out how to trigger when mousing up outside input line (switch to targeting wrapper?)
         const selection = getSelectionData(newInputLine);
 
         console.log(selection);
