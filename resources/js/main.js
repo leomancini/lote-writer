@@ -15,10 +15,8 @@ function insertNewInputLine(params) {
     const newLineWrapperElement = document.createElement('div');
     newLineWrapperElement.classList = 'lineWrapper';
 
-    newLineWrapperElement.onclick = (click) => {
-        newLineWrapperElement.querySelector('input').focus();
-        // TODO: Reset caret position / remove selection when focused
-    }
+    const newLineBackgroundElement = document.createElement('div');
+    newLineBackgroundElement.classList = 'lineBackground';
 
     const newInputLine = document.createElement('input');
     newInputLine.classList = 'inputLine';
@@ -33,14 +31,16 @@ function insertNewInputLine(params) {
         const selection = getSelectionData(newInputLine);
 
         if (keydown.key === 'Enter') {
-            // TODO: Figure out how to do this when IME window is visible
-            // and Enter is used to select character candidate
-            insertNewInputLine({
-                parentPageElement: params.parentPageElement,
-                position: {
-                    after: newLineWrapperElement
-                }
-            });
+            const delayToInsertNewInputLine = 100; // This is mostly to give time for the macOS IME window to clear
+
+            setTimeout(function() {
+                insertNewInputLine({
+                    parentPageElement: params.parentPageElement,
+                    position: {
+                        after: newLineWrapperElement
+                    }
+                });
+            }, delayToInsertNewInputLine);
         } else if (keydown.key === 'Backspace') {
             if (newInputLine.value === '' || selection.start === 0) {
                 if (newLineWrapperElement.previousElementSibling) {
@@ -63,15 +63,26 @@ function insertNewInputLine(params) {
         }
     }
 
-    newInputLine.onmouseup = (mouseup) => {
-        // TODO: Figure out how to trigger when mousing up outside input line (switch to targeting wrapper?)
-        const selection = getSelectionData(newInputLine);
-
-        console.log(selection);
-    }
-    
     newInputLine.onblur = (blur) => {
         blur.preventDefault();
+    }
+
+    newLineWrapperElement.onmouseup = (mouseup) => {
+        mouseup.stopPropagation();
+        const selection = getSelectionData(newInputLine);
+        console.log(selection);
+    }
+
+    newLineBackgroundElement.onclick = (click) => {
+        newInputLine.focus();
+        
+        if (click.clientX < newInputLine.offsetLeft) {
+            newInputLine.selectionStart = 0;
+            newInputLine.selectionEnd = 0;
+        } else if (click.clientX > newInputLine.offsetLeft + newInputLine.offsetWidth) {
+            newInputLine.selectionStart = newInputLine.value.length;
+            newInputLine.selectionEnd = newInputLine.value.length;
+        }
     }
     
     const newTranslationInputLine = document.createElement('input');
@@ -86,6 +97,7 @@ function insertNewInputLine(params) {
 
     newLineWrapperElement.appendChild(newInputLine);
     newLineWrapperElement.appendChild(newTranslationInputLine);
+    newLineWrapperElement.appendChild(newLineBackgroundElement);
 
     if (params.position === 'END') {
         parentPageElement.appendChild(newLineWrapperElement);
@@ -124,7 +136,11 @@ function render() {
         if (click.target.tagName === 'HTML' || click.target.tagName === 'BODY') {
             click.preventDefault();
             const allLineWrappers = document.querySelectorAll('.lineWrapper');
-            allLineWrappers[allLineWrappers.length - 1].querySelector('input').focus();
+            const lastInputLine = allLineWrappers[allLineWrappers.length - 1].querySelector('input')
+            lastInputLine.focus();
+
+            lastInputLine.selectionStart = lastInputLine.value.length;
+            lastInputLine.selectionEnd = lastInputLine.value.length;
         }
     } 
 }
