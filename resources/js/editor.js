@@ -1,28 +1,11 @@
-function setCaretPosition(params) {
-    const field = params.field;
-
-    if (params.position === 'END') {
-        if (field.innerText.length > 0) {
-            const range = document.createRange();
-            const selection = window.getSelection();
-            
-            range.setStart(field.childNodes[0], field.innerText.length);
-            range.collapse(true);
-            
-            selection.removeAllRanges();
-            selection.addRange(range);
-        }
-    }
-
-    removeTextAccessory();
-}
-
 function getSelectionData(field) {
     const selection = window.getSelection();
     const range = selection.getRangeAt(0);
 
     const selectionData = {
         field,
+        selection,
+        range,
         start: range.startOffset,
         end: range.endOffset,
         isTextSelected: range.startOffset !== range.endOffset,
@@ -81,8 +64,9 @@ function renderTextAccessory(selectionData) {
         const textAccessoryOptionIcon = document.createElement('div');
         textAccessoryOptionIcon.classList = 'textAccessoryOptionIcon';
 
-        textAccessoryOptionElement.onclick = (click) => {
-            console.log(textAccessoryOption.title);
+        textAccessoryOptionIcon.onclick = (click) => {
+            addAnnotation(selectionData);
+            
             removeTextAccessory();
         }
 
@@ -91,6 +75,18 @@ function renderTextAccessory(selectionData) {
     });
 
     selectionData.field.closest('.lineWrapper').appendChild(textAccessory);
+}
+
+function addAnnotation(selectionData) {
+    // Add annotated background on line input
+    const range = selectionData.range;
+    const rangeTextValue = range.extractContents();
+    const annotatedRangeElement = document.createElement('span');
+    annotatedRangeElement.classList = 'annotated';
+    annotatedRangeElement.appendChild(rangeTextValue);
+    range.insertNode(annotatedRangeElement);
+
+    // TODO: Add annotation label below
 }
 
 function removeTextAccessory() {
