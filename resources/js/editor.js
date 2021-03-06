@@ -83,10 +83,13 @@ function addAnnotation(selectionData) {
     const rangeTextValue = range.extractContents();
     const annotatedRangeElement = document.createElement('span');
     annotatedRangeElement.classList = 'annotated';
+
+    const annotatedNoteElement = document.createElement('div');
+    annotatedNoteElement.classList = 'annotatedNote';
+    annotatedRangeElement.appendChild(annotatedNoteElement);
+
     annotatedRangeElement.appendChild(rangeTextValue);
     range.insertNode(annotatedRangeElement);
-
-    // TODO: Add annotation label below
 }
 
 function removeTextAccessory() {

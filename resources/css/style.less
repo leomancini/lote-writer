@@ -39,11 +39,11 @@ html {
 					// 	}
 					// }
 	
-					&.filled {
-						.inputLine {
+					// &.filled {
+					// 	.inputLine {
 	
-						}
-					}
+					// 	}
+					// }
 
 					.lineBackground {
 						position: absolute;
@@ -68,15 +68,45 @@ html {
 						left: -25%;
 
 						.annotated {
-							background: rgba(255, 0, 0, 0.1);
+							position: relative;
+							display: inline-block;
+							background: rgba(46, 148, 243, 0.1);
+							border-radius: 8px;
+							transition: all 0.2s;
+
+							&:hover {
+								background: rgba(46, 148, 243, 0.2);
+
+								.annotatedNote {
+									opacity: 1;
+									pointer-events: all;
+									margin-top: -@lineHeight - 8px;
+								}
+							}
+
+							.annotatedNote {
+								position: absolute;
+								display: inline-block;
+								width: 120px;
+								margin-left: -60px;
+								height: 30px;
+								background: white;
+								border-radius: 60px;
+								box-shadow: 0px 2px 14px rgba(0, 0, 0, 0.15);
+								opacity: 0;
+								pointer-events: none;
+								transition: all 0.2s;
+								margin-top: -@lineHeight - 4px;
+								left: 50%;
+							}
 						}
 					}
 
-					.selectionBackground {
-						position: absolute;
-						z-index: 1;
-						background: red;
-					}
+					// .selectionBackground {
+					// 	position: absolute;
+					// 	z-index: 1;
+					// 	background: red;
+					// }
 		
 					.textAccessory {
 						background: white;
