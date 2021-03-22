@@ -1,6 +1,7 @@
 function renderPage(params) {
     const pageElement = params.pageElement;
     pageElement.dataset.numberOfLines = 0;
+    pageElement.dataset.pageid = params.pageID;
 
     insertlineInput({
         parentPageElement: pageElement,
@@ -8,8 +9,15 @@ function renderPage(params) {
     });
 }
 
-function render() {
+async function render() {
+    const newPage = await server('POST', 'addPage',
+        {
+            data: "A new page!"
+        });
+    console.log(newPage.id);
+
     renderPage({
+        pageID: newPage.id,
         pageElement: document.querySelector('.page')
     });
 
@@ -30,7 +38,7 @@ function render() {
                 position: 'END'
             });
         }
-    } 
+    }
 }
 
 render();

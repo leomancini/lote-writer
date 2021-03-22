@@ -120,6 +120,7 @@ function drawSelectionBackground(selectionData) {
 
 function insertlineInput(params) {
     const parentPageElement = params.parentPageElement;
+    const pageID = parentPageElement.dataset.pageid;
 
     const lineWrapperElement = document.createElement('div');
     lineWrapperElement.classList = 'lineWrapper';
@@ -135,6 +136,8 @@ function insertlineInput(params) {
         if (lineInput.innerText !== '') {
             lineWrapperElement.classList.add('filled');
         }
+
+        updatePageDebounced(pageID, parentPageElement);
     }
 
     lineInput.onkeydown = (keydown) => {
