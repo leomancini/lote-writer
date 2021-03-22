@@ -127,6 +127,10 @@ function insertlineInput(params) {
     const lineWrapperElement = document.createElement('div');
     lineWrapperElement.classList = 'lineWrapper';
 
+    if (params.data && params.data.translation && params.data.translation !== '') {
+        lineWrapperElement.classList.add('withTranslationLine');
+    }
+
     const lineBackgroundElement = document.createElement('div');
     lineBackgroundElement.classList = 'lineBackground';
 
@@ -134,8 +138,8 @@ function insertlineInput(params) {
     lineInput.setAttribute('contenteditable', true);
     lineInput.classList = 'lineInput';
 
-    if (params.content) {
-        lineInput.innerHTML = params.content;
+    if (params.data && params.data.content && params.data.content !== '') {
+        lineInput.innerHTML = params.data.content;
     }
 
     lineInput.onkeyup = (keyup) => {
@@ -224,10 +228,39 @@ function insertlineInput(params) {
         }
     }
     
+    const addTranslationLineButton = document.createElement('button');
+    addTranslationLineButton.classList = 'addTranslationLineButton';
+
+    addTranslationLineButton.onclick = (click) => {
+        if (lineWrapperElement.classList.contains('withTranslationLine')) {
+            const confirmDelete = confirm('Are you sure you want to delete the translation for this line?');
+            if (confirmDelete == true) {
+                lineWrapperElement.classList.remove('withTranslationLine');
+                translationLineInput.innerText = '';
+                translationLineInput.classList.add('hidden');
+    
+                updatePage(parentPageElement);            
+            }
+        } else {
+            lineWrapperElement.classList.add('withTranslationLine');
+            translationLineInput.classList.remove('hidden');
+            translationLineInput.focus();
+
+            updatePage(parentPageElement);
+        }
+    }
+
     const translationLineInput = document.createElement('div');
     translationLineInput.setAttribute('contenteditable', true);
     translationLineInput.classList = 'translationLineInput';
     translationLineInput.setAttribute('placeholder', 'Add translation');
+    translationLineInput.setAttribute('spellcheck', 'false'); // TODO: Make this configurable by user in settings
+
+    if (params.data && params.data.translation && params.data.translation !== '') {
+        translationLineInput.innerHTML = params.data.translation;
+    } else {
+        translationLineInput.classList.add('hidden');
+    }
 
     translationLineInput.onkeydown = (keydown) => {
         if (translationLineInput.innerText !== '') {
@@ -235,7 +268,12 @@ function insertlineInput(params) {
         }
     }
 
+    translationLineInput.onkeyup = (keyup) => {
+        updatePageDebounced(parentPageElement);
+    }
+
     lineWrapperElement.appendChild(lineInput);
+    lineWrapperElement.appendChild(addTranslationLineButton);
     lineWrapperElement.appendChild(translationLineInput);
     lineWrapperElement.appendChild(lineBackgroundElement);
 

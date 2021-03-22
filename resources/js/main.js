@@ -7,11 +7,11 @@ async function renderPage(params) {
         pageElement.dataset.numberOfLines = pageData.data.lines.length;
         pageElement.dataset.pageid = pageData._id;
 
-        pageData.data.lines.map((line) => {
+        pageData.data.lines.map((lineData) => {
             insertlineInput({
                 parentPageElement: pageElement,
                 position: 'END',
-                content: line.content
+                data: lineData
             });
         });
     } else {

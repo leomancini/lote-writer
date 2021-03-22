@@ -22,7 +22,7 @@ async function updatePage(pageElement) {
     pageElement.querySelectorAll('.lineWrapper').forEach((lineWrapper) => {
         lines.push({
             content: lineWrapper.querySelector('.lineInput').innerHTML,
-            translation: null,
+            translation: lineWrapper.querySelector('.translationLineInput').innerHTML,
             transliteration: null
         });
     });
