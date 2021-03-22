@@ -134,6 +134,10 @@ function insertlineInput(params) {
     lineInput.setAttribute('contenteditable', true);
     lineInput.classList = 'lineInput';
 
+    if (params.content) {
+        lineInput.innerHTML = params.content;
+    }
+
     lineInput.onkeyup = (keyup) => {
         if (lineInput.innerText !== '') {
             lineWrapperElement.classList.add('filled');

@@ -20,7 +20,11 @@ async function updatePage(pageElement) {
     let lines = [];
 
     pageElement.querySelectorAll('.lineWrapper').forEach((lineWrapper) => {
-        lines.push(lineWrapper.querySelector('.lineInput').innerHTML);
+        lines.push({
+            content: lineWrapper.querySelector('.lineInput').innerHTML,
+            translation: null,
+            transliteration: null
+        });
     });
 
     console.log(lines);
@@ -38,3 +42,7 @@ async function updatePage(pageElement) {
 const updatePageDebounced = debounce(function(pageElement) {
     updatePage(pageElement);
 }, 250);
+
+async function getPageData(params) {
+    return await server('GET', `getPage?id=${params.pageID}`);
+}

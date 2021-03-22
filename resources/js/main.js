@@ -1,29 +1,54 @@
-function renderPage(params) {
-    const pageElement = params.pageElement;
-    pageElement.dataset.numberOfLines = 0;
-    pageElement.dataset.pageid = params.pageID;
+async function renderPage(params) {
+    const { pageData, pageElement } = params;
 
-    insertlineInput({
-        parentPageElement: pageElement,
-        position: 'END'
-    });
+    if (pageData) {
+        // Render an existing page with data from server
+        console.log(pageData.data);
+        pageElement.dataset.numberOfLines = pageData.data.lines.length;
+        pageElement.dataset.pageid = pageData._id;
+
+        pageData.data.lines.map((line) => {
+            insertlineInput({
+                parentPageElement: pageElement,
+                position: 'END',
+                content: line.content
+            });
+        });
+    } else {
+        // Render a new empty page
+        pageElement.dataset.numberOfLines = 0;
+        pageElement.dataset.pageid = params.pageID;
+
+        insertlineInput({
+            parentPageElement: pageElement,
+            position: 'END'
+        });
+    }
 }
 
 async function render() {
-    const newPage = await server('POST', 'addPage',
-        {
-            data: {
-                lines: []
-            }
-        });
-    console.log(`Created ${newPage.id}`);
+    // const newPage = await server('POST', 'addPage',
+    //     {
+    //         data: {
+    //             lines: []
+    //         }
+    //     }
+    // );
+    // console.log(`Created ${newPage.id}`);
 
-    renderPage({
-        pageID: newPage.id,
-        pageElement: document.querySelector('.page')
+    // renderPage({
+    //     pageID: newPage.id,
+    //     pageElement: document.querySelector('.page')
+    // });
+
+    const pageDataResponse = await getPageData({
+        pageID: '605822778dd89c8735bc2b38'
     });
 
-    // TODO: Add support for rendering lines from server into renderPage
+    await renderPage({
+        pageData: pageDataResponse.page,
+        pageElement: document.querySelector('.page')
+    });
 
     setTimeout(function() {
         const allLineWrappers = document.querySelectorAll('.lineWrapper');
