@@ -20,7 +20,7 @@ async function render() {
         pageID: newPage.id,
         pageElement: document.querySelector('.page')
     });
-    
+
     // TODO: Add support for rendering lines from server into renderPage
 
     setTimeout(function() {

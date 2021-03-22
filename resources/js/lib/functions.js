@@ -6,14 +6,14 @@
 // `wait` milliseconds.
 const debounce = (func, wait) => {
     let timeout;
-  
+
     return function executedFunction(...args) {
-      const later = () => {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+
         clearTimeout(timeout);
-        func(...args);
-      };
-  
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
+        timeout = setTimeout(later, wait);
     };
-  };
+};

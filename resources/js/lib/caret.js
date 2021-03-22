@@ -1,4 +1,3 @@
-
 function createRange(node, chars, range) {
     // From https://stackoverflow.com/a/41034697
     if (!range) {
