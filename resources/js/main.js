@@ -14,12 +14,14 @@ async function render() {
         {
             data: "A new page!"
         });
-    console.log(newPage.id);
+    console.log(`Created ${newPage.id}`);
 
     renderPage({
         pageID: newPage.id,
         pageElement: document.querySelector('.page')
     });
+    
+    // TODO: Add support for rendering lines from server into renderPage
 
     setTimeout(function() {
         const allLineWrappers = document.querySelectorAll('.lineWrapper');

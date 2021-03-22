@@ -90,6 +90,9 @@ function addAnnotation(selectionData) {
 
     annotatedRangeElement.appendChild(rangeTextValue);
     range.insertNode(annotatedRangeElement);
+
+    const pageElement = selectionData.field.closest('.page');
+    updatePage(pageElement);
 }
 
 function removeTextAccessory() {
@@ -120,7 +123,6 @@ function drawSelectionBackground(selectionData) {
 
 function insertlineInput(params) {
     const parentPageElement = params.parentPageElement;
-    const pageID = parentPageElement.dataset.pageid;
 
     const lineWrapperElement = document.createElement('div');
     lineWrapperElement.classList = 'lineWrapper';
@@ -137,7 +139,7 @@ function insertlineInput(params) {
             lineWrapperElement.classList.add('filled');
         }
 
-        updatePageDebounced(pageID, parentPageElement);
+        updatePageDebounced(parentPageElement);
     }
 
     lineInput.onkeydown = (keydown) => {

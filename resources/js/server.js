@@ -14,12 +14,16 @@ async function server(method, endpoint, data) {
     return response;
 }
 
-async function updatePage(pageID, parentPageElement) {
+async function updatePage(pageElement) {
+    const pageID = pageElement.dataset.pageid;
+
     let lines = [];
 
-    parentPageElement.querySelectorAll('.lineWrapper').forEach((lineWrapper) => {
+    pageElement.querySelectorAll('.lineWrapper').forEach((lineWrapper) => {
         lines.push(lineWrapper.querySelector('.lineInput').innerHTML);
     });
+
+    console.log(lines);
 
     await server('POST', 'updatePage',
         {
@@ -31,6 +35,6 @@ async function updatePage(pageID, parentPageElement) {
     );
 }
 
-const updatePageDebounced = debounce(function(pageID, parentPageElement) {
-    updatePage(pageID, parentPageElement);
+const updatePageDebounced = debounce(function(pageElement) {
+    updatePage(pageElement);
 }, 250);
