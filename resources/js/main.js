@@ -12,7 +12,7 @@ function renderPage(params) {
 async function render() {
     const newPage = await server('POST', 'addPage',
         {
-            data: "A new page!"
+            lines: []
         });
     console.log(`Created ${newPage.id}`);
 
