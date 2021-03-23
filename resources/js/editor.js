@@ -168,7 +168,10 @@ function insertlineInput(params) {
         
         // TODO: Do something to prevent lines from wrapping
         // Maybe create a new line and put the overflow into the new line
-        
+
+        // TODO: When typing at the end of a line and an annotation is at the end of a line,
+        // prevent new text from being added to the annotation
+
         if (keydown.key === 'Enter') {
             keydown.preventDefault();
             const delayToInsertlineInput = 100; // This is mostly to give time for the macOS IME window to clear
