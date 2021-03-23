@@ -49,7 +49,7 @@ function setCaretPosition(params) {
     const field = params.field;
 
     if (params.position === 'END') {
-        setCurrentCursorPosition(field, field.innerText.length);
+        setCurrentCursorPosition(field, field.textContent.length);
     } else if (params.position === 'START') {
         setCurrentCursorPosition(field, 0);
     }

@@ -181,10 +181,10 @@ function insertlineInput(params) {
             if (selection.start === 0) {
                 if (lineWrapperElement.previousElementSibling) {
                     const previousLineInput = lineWrapperElement.previousElementSibling.querySelector('.lineInput');
-
+                    
                     previousLineInput.focus();
 
-                    if (previousLineInput.innerText !== '') {
+                    if (previousLineInput.textContent !== '') {
                         keydown.preventDefault();
 
                         setCaretPosition({
@@ -194,7 +194,7 @@ function insertlineInput(params) {
                     }
                 }
                 
-                if (lineInput.innerText === '') {
+                if (lineInput.textContent === '') {
                     if (parentPageElement.dataset.numberOfLines > 1) {
                         lineWrapperElement.remove();
                         parentPageElement.dataset.numberOfLines--;
@@ -255,6 +255,7 @@ function insertlineInput(params) {
             const confirmDelete = confirm('Are you sure you want to delete the translation for this line?');
             if (confirmDelete == true) {
                 lineWrapperElement.classList.remove('withTranslationLine');
+
                 translationLineInput.innerText = '';
                 translationLineInput.classList.add('hidden');
     
@@ -262,6 +263,7 @@ function insertlineInput(params) {
             }
         } else {
             lineWrapperElement.classList.add('withTranslationLine');
+
             translationLineInput.classList.remove('hidden');
             translationLineInput.focus();
 
@@ -282,8 +284,37 @@ function insertlineInput(params) {
     }
 
     translationLineInput.onkeydown = (keydown) => {
+        const selection = getSelectionData(translationLineInput);
+
         if (translationLineInput.innerText !== '') {
             translationLineInput.classList.add('filled');
+        }
+
+        if (keydown.key === 'Enter') {
+            keydown.preventDefault();
+
+            insertlineInput({
+                parentPageElement: params.parentPageElement,
+                position: {
+                    after: lineWrapperElement
+                }
+            });
+        } else if (keydown.key === 'Backspace') {
+            if (selection.caretPosition === 0 && translationLineInput.textContent === '') {
+                keydown.preventDefault();
+
+                lineWrapperElement.classList.remove('withTranslationLine');
+                lineInput.focus();
+
+                setCaretPosition({
+                    field: lineInput,
+                    position: 'END'
+                });
+                
+                translationLineInput.classList.add('hidden');
+
+                updatePage(parentPageElement); ;
+            }
         }
     }
 

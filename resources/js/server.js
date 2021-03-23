@@ -27,7 +27,7 @@ async function updatePage(pageElement) {
         });
     });
 
-    console.log(lines);
+    // console.log(lines);
 
     await server('POST', 'updatePage',
         {
