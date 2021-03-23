@@ -21,15 +21,19 @@ html {
 	
 				.lineWrapper {
 					@lineHeight: 32px;
+					@translationLineHeight: 24px;
+					
 					position: relative;
 					height: @lineHeight;
 					width: 100%;
 
 					&.withTranslationLine {
-						height: @lineHeight + 48px;
+						@translationLineMarginBottom: 16px;
+						
+						height: @lineHeight + @translationLineHeight + @translationLineMarginBottom;
 
 						.textAccessory {
-							margin-top: -48px + 8px;
+							margin-top: -(@lineHeight + @translationLineHeight + @translationLineMarginBottom) + 8px;
 						}
 					}
 
@@ -180,7 +184,7 @@ html {
 						border: none;
 						outline: none;
 						color: rgba(0, 0, 0, 0.5);
-						height: 16px;
+						height: @translationLineHeight;
 						font-size: 16px;
 						opacity: 1;
 						float: left;
