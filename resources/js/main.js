@@ -3,7 +3,6 @@ async function renderPage(params) {
 
     if (pageData) {
         // Render an existing page with data from server
-        console.log(pageData.data);
         pageElement.dataset.numberOfLines = pageData.data.lines.length;
         pageElement.dataset.pageid = pageData._id;
 

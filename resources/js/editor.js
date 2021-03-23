@@ -12,6 +12,7 @@ function getSelectionData(field) {
 
     const selectionData = {
         field,
+        element: selection.anchorNode.parentElement,
         selection,
         caretPosition,
         range,
@@ -165,6 +166,9 @@ function insertlineInput(params) {
 
         removeTextAccessory();
         
+        // TODO: Do something to prevent lines from wrapping
+        // Maybe create a new line and put the overflow into the new line
+        
         if (keydown.key === 'Enter') {
             keydown.preventDefault();
             const delayToInsertlineInput = 100; // This is mostly to give time for the macOS IME window to clear
@@ -225,10 +229,11 @@ function insertlineInput(params) {
 
     lineWrapperElement.onmouseup = (mouseup) => {
         const selectionData = getSelectionData(lineInput);
-
+        
         if (selectionData.isTextSelected) {
-            console.log(selectionData);
-            renderTextAccessory(selectionData);
+            if (selectionData.element.classList.contains('lineInput')) {
+                renderTextAccessory(selectionData);
+            }
         } else {
             if (!mouseup.target.classList.contains('textAccessoryOptionIcon')) {
                 removeTextAccessory();
