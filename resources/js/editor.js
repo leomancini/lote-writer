@@ -145,6 +145,7 @@ function insertlineInput(params) {
 
     const lineInput = document.createElement('div');
     lineInput.setAttribute('contenteditable', true);
+    lineInput.setAttribute('spellcheck', 'false'); // TODO: Make this configurable by user in settings
     lineInput.classList = 'lineInput';
 
     if (params.data && params.data.content && params.data.content !== '') {
