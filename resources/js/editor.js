@@ -2,9 +2,18 @@ function getSelectionData(field) {
     const selection = window.getSelection();
     const range = selection.getRangeAt(0);
 
+    let caretPosition;
+
+    if (range.startOffset === range.endOffset) {
+        selection.modify("extend", "backward", "documentboundary");
+        caretPosition = selection.toString().length;
+        if(selection.anchorNode != undefined) selection.collapseToEnd();
+    }
+
     const selectionData = {
         field,
         selection,
+        caretPosition,
         range,
         start: range.startOffset,
         end: range.endOffset,
@@ -168,7 +177,7 @@ function insertlineInput(params) {
                 });
             }, delayToInsertlineInput);
         } else if (keydown.key === 'Backspace') {
-            if (lineInput.innerText === '' || selection.start === 0) {
+            if (selection.start === 0) {
                 if (lineWrapperElement.previousElementSibling) {
                     const previousLineInput = lineWrapperElement.previousElementSibling.querySelector('.lineInput');
 
@@ -184,9 +193,11 @@ function insertlineInput(params) {
                     }
                 }
                 
-                if (parentPageElement.dataset.numberOfLines > 1) {
-                    lineWrapperElement.remove();
-                    parentPageElement.dataset.numberOfLines--;
+                if (lineInput.innerText === '') {
+                    if (parentPageElement.dataset.numberOfLines > 1) {
+                        lineWrapperElement.remove();
+                        parentPageElement.dataset.numberOfLines--;
+                    }
                 }
             }
         } else if (keydown.key === 'ArrowUp') {
@@ -196,6 +207,13 @@ function insertlineInput(params) {
         } else if (keydown.key === 'ArrowDown') {
             if (lineWrapperElement.nextElementSibling) {
                 lineWrapperElement.nextElementSibling.querySelector('.lineInput').focus();
+            }
+        } else if (keydown.key === 'ArrowRight') {
+            if (selection.caretPosition === lineInput.textContent.length) {
+                if (lineWrapperElement.nextElementSibling) {
+                    lineWrapperElement.nextElementSibling.querySelector('.lineInput').focus();
+                    keydown.preventDefault();
+                }
             }
         }
     }
