@@ -169,9 +169,6 @@ function insertlineInput(params) {
         // TODO: Do something to prevent lines from wrapping
         // Maybe create a new line and put the overflow into the new line
 
-        // TODO: When typing at the end of a line and an annotation is at the end of a line,
-        // prevent new text from being added to the annotation
-
         if (selection.element.classList.contains('annotated')) {
             if (!keydown.metaKey && keydown.key !== 'Backspace') {
                 if (selection.start === selection.element.innerText.length) {
