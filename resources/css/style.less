@@ -3,12 +3,107 @@
 	font-family: 'Inter', sans-serif;
 }
 
+@grid: 4px;
+
 html {
 	background: rgba(255, 255, 255, 1);
 	margin: 0;
 
 	body {
 		margin: 0;
+
+		#toolbar {
+			@toolbarPaddingTop: @grid * 6;
+			@toolbarPaddingLeftRight: @grid * 6;
+
+			width: 100%;
+			height: @grid * 16;
+			text-align: center;
+			position: relative;
+			padding-top: @toolbarPaddingTop;
+
+			#leftMenuItems {
+				height: @grid * 12;
+				position: absolute;
+				top: @toolbarPaddingTop;
+				left: @toolbarPaddingLeftRight;
+			}
+
+			#rightMenuItems {
+				height: @grid * 12;
+				position: absolute;
+				top: @toolbarPaddingTop;
+				right: @toolbarPaddingLeftRight;
+			}
+
+			#modeSelectorContainer {
+				@modeSelectorContainerHeight: @grid * 12;
+				@modeSelectorPadding: @grid * 1.5;
+
+				position: relative;
+				text-align: center;
+				background: rgba(0, 0, 0, 0.05);
+				height: @modeSelectorContainerHeight;
+				display: inline-block;
+				border-radius: @modeSelectorContainerHeight;
+				padding: 0 @modeSelectorPadding;
+				font-size: 0;
+
+				.modeSelector {
+					position: relative;
+					font-size: 16px;
+					display: inline-block;
+					text-align: center;
+					cursor: default;
+					width: 120px;
+					padding: 0 12px;
+					margin-right: 12px;
+					margin-top: @modeSelectorPadding;
+					line-height: @modeSelectorContainerHeight - (@modeSelectorPadding * 2);
+					height: @modeSelectorContainerHeight - (@modeSelectorPadding * 2);
+					border-radius: @modeSelectorContainerHeight;
+					color: rgba(0, 0, 0, 0.5);
+					z-index: 2;
+					transition: 0.2s all;
+
+					&:last-child {
+						margin-right: 0;
+					}
+
+					&.selected {
+						color: rgba(0, 0, 0, 1);
+
+						&:hover {
+							background: unset;
+						}
+					}
+
+					&:hover {
+						color: rgba(0, 0, 0, 0.7);
+						background: rgba(0, 0, 0, 0.05);
+					}
+
+					&:active {
+						background: rgba(0, 0, 0, 0.08);
+					}
+				}
+
+				#modeSelectorSelectedBackground {
+					position: absolute;
+					width: 120px;
+					padding: 0 12px;
+					border-radius: @modeSelectorContainerHeight;
+					height: calc(100% - (@modeSelectorPadding * 2));
+					background: rgba(255, 255, 255, 1);
+					box-shadow: 0px 2px 14px rgba(0, 0, 0, 0.15);
+					top: 0;
+					left: 0;
+					margin: @modeSelectorPadding;
+					z-index: 1;
+					transition: 0.2s all;
+				}
+			}
+		}
 
 		#pages {
 			padding-top: 100px;
