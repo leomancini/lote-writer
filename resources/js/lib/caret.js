@@ -52,6 +52,8 @@ function setCaretPosition(params) {
         setCurrentCursorPosition(field, field.textContent.length);
     } else if (params.position === 'START') {
         setCurrentCursorPosition(field, 0);
+    } else {
+        setCurrentCursorPosition(field, params.position);
     }
 
     removeTextAccessory();

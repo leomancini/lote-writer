@@ -4,10 +4,11 @@ function getSelectionData(field) {
 
     let caretPosition;
 
+    // If no text is selected
     if (range.startOffset === range.endOffset) {
-        selection.modify("extend", "backward", "documentboundary");
+        selection.modify('extend', 'backward', 'documentboundary');
         caretPosition = selection.toString().length;
-        if(selection.anchorNode != undefined) selection.collapseToEnd();
+        if (selection.anchorNode != undefined) { selection.collapseToEnd(); }
     }
 
     const selectionData = {
@@ -101,8 +102,7 @@ function addAnnotation(selectionData) {
     annotatedRangeElement.appendChild(rangeTextValue);
     range.insertNode(annotatedRangeElement);
 
-    const pageElement = selectionData.field.closest('.page');
-    updatePage(pageElement);
+    updatePage(selectionData.field.closest('.page'));
 }
 
 function removeTextAccessory() {
@@ -171,6 +171,25 @@ function insertlineInput(params) {
 
         // TODO: When typing at the end of a line and an annotation is at the end of a line,
         // prevent new text from being added to the annotation
+
+        if (selection.element.classList.contains('annotated')) {
+            if (!keydown.metaKey && keydown.key !== 'Backspace') {
+                if (selection.start === selection.element.innerText.length) {
+                    keydown.preventDefault();
+    
+                    const zeroWidthSpaceCharacter = document.createTextNode('\u200B');
+                    insertAfter(selection.element, zeroWidthSpaceCharacter);
+    
+                    setCaretPosition({
+                        field: lineInput,
+                        position: selection.caretPosition + 1
+                    });
+    
+                    const character = document.createTextNode(keydown.key);
+                    insertAfter(selection.element, character);
+                }
+            }
+        }
 
         if (keydown.key === 'Enter') {
             keydown.preventDefault();

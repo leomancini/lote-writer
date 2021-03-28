@@ -17,27 +17,29 @@ async function server(method, endpoint, data) {
 async function updatePage(pageElement) {
     const pageID = pageElement.dataset.pageid;
 
-    let lines = [];
-
-    pageElement.querySelectorAll('.lineWrapper').forEach((lineWrapper) => {
-        lines.push({
-            content: lineWrapper.querySelector('.lineInput').innerHTML,
-            translation: lineWrapper.querySelector('.translationLineInput').innerHTML,
-            transliteration: null
+    if (pageID) {
+        let lines = [];
+    
+        pageElement.querySelectorAll('.lineWrapper').forEach((lineWrapper) => {
+            lines.push({
+                content: lineWrapper.querySelector('.lineInput').innerHTML,
+                translation: lineWrapper.querySelector('.translationLineInput').innerHTML,
+                transliteration: null
+            });
         });
-    });
-
-    console.log('Saved!');
-    // console.log(lines);
-
-    await server('POST', 'updatePage',
-        {
-            id: pageID,
-            data: {
-                lines
+    
+        console.log('Saved!');
+        // console.log(lines);
+    
+        await server('POST', 'updatePage',
+            {
+                id: pageID,
+                data: {
+                    lines
+                }
             }
-        }
-    );
+        );
+    }
 }
 
 const updatePageDebounced = debounce(function(pageElement) {
