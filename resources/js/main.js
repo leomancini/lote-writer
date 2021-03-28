@@ -51,7 +51,12 @@ async function render() {
 
     setTimeout(function() {
         const allLineWrappers = document.querySelectorAll('.lineWrapper');
-        allLineWrappers[0].querySelector('.lineInput').focus();
+        // allLineWrappers[0].querySelector('.lineInput').focus();
+
+        setCaretPosition({
+            field: allLineWrappers[0].querySelector('.lineInput'),
+            position: 'START'
+        });
     }, 10);
 
     document.onclick = (click) => {

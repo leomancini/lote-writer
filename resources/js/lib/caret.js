@@ -51,6 +51,8 @@ function setCaretPosition(params) {
     if (params.position === 'END') {
         setCurrentCursorPosition(field, field.textContent.length);
     } else if (params.position === 'START') {
+        // TODO: Don't set caret position if within an annotated note
+
         setCurrentCursorPosition(field, 0);
     } else {
         setCurrentCursorPosition(field, params.position);
