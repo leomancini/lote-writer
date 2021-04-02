@@ -190,6 +190,11 @@ function insertlineInput(params) {
 
         if (keydown.key === 'Enter') {
             keydown.preventDefault();
+            // TODO: Change behavior based on caret position
+            // If at the end of the line, create a new line AFTER and focus the new line
+            // If at the begining of the line, create a new line BEFORE and focus the old line
+            // If in the middle of a line... ???
+
             const delayToInsertlineInput = 100; // This is mostly to give time for the macOS IME window to clear
 
             setTimeout(function() {
@@ -224,6 +229,8 @@ function insertlineInput(params) {
                     }
                 }
             }
+
+        // TODO: Figure out if pressing arrow keys should focus translation lines as well?
         } else if (keydown.key === 'ArrowUp') {
             if (lineWrapperElement.previousElementSibling) {
                 lineWrapperElement.previousElementSibling.querySelector('.lineInput').focus();
