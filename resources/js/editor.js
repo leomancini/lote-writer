@@ -19,6 +19,8 @@ function getSelectionData(field) {
         range,
         start: range.startOffset,
         end: range.endOffset,
+        isCaretAtStartOfLine: (range.startOffset && range.endOffset) === 0,
+        isCaretAtEndOfLine: range.startOffset === selection.anchorNode.parentElement.textContent.length,
         isTextSelected: range.startOffset !== range.endOffset,
         value: selection.toString(),
         boundingClientRect: selection.getRangeAt(0).getBoundingClientRect()
@@ -131,6 +133,24 @@ function drawSelectionBackground(selectionData) {
     selectionData.field.closest('.lineWrapper').appendChild(selectionBackground);
 }
 
+function showTranslationLine(lineWrapperElement, translationLineInput, parentPageElement) {
+    lineWrapperElement.classList.add('withTranslationLine');
+
+    translationLineInput.classList.remove('hidden');
+    translationLineInput.focus();
+
+    updatePage(parentPageElement);
+}
+
+function hideTranslationLine(lineWrapperElement, translationLineInput, parentPageElement) {
+    lineWrapperElement.classList.remove('withTranslationLine');
+    
+    translationLineInput.innerText = '';
+    translationLineInput.classList.add('hidden');
+
+    updatePage(parentPageElement);  
+}
+
 function insertlineInput(params) {
     const parentPageElement = params.parentPageElement;
 
@@ -190,21 +210,31 @@ function insertlineInput(params) {
 
         if (keydown.key === 'Enter') {
             keydown.preventDefault();
-            // TODO: Change behavior based on caret position
-            // If at the end of the line, create a new line AFTER and focus the new line
-            // If at the begining of the line, create a new line BEFORE and focus the old line
-            // If in the middle of a line... ???
-
             const delayToInsertlineInput = 100; // This is mostly to give time for the macOS IME window to clear
 
-            setTimeout(function() {
-                insertlineInput({
-                    parentPageElement: params.parentPageElement,
-                    position: {
-                        after: lineWrapperElement
-                    }
-                });
-            }, delayToInsertlineInput);
+            if (selection.isCaretAtStartOfLine) {
+                setTimeout(function() {
+                    insertlineInput({
+                        parentPageElement: params.parentPageElement,
+                        position: {
+                            before: lineWrapperElement
+                        }
+                    });
+
+                    lineInput.focus();
+                }, delayToInsertlineInput);
+            } else if (selection.isCaretAtEndOfLine) {
+                setTimeout(function() {
+                    insertlineInput({
+                        parentPageElement: params.parentPageElement,
+                        position: {
+                            after: lineWrapperElement
+                        }
+                    });
+                }, delayToInsertlineInput);
+            } else {
+                // TODO: If in the middle of a line, break the line and put stuff to the right on a new line???
+            }
         } else if (keydown.key === 'Backspace') {
             if (selection.start === 0) {
                 if (lineWrapperElement.previousElementSibling) {
@@ -283,22 +313,17 @@ function insertlineInput(params) {
 
     addTranslationLineButton.onclick = (click) => {
         if (lineWrapperElement.classList.contains('withTranslationLine')) {
-            const confirmDelete = confirm('Are you sure you want to delete the translation for this line?');
-            if (confirmDelete == true) {
-                lineWrapperElement.classList.remove('withTranslationLine');
+            if (translationLineInput.innerText === '') {
+                hideTranslationLine(lineWrapperElement, translationLineInput, parentPageElement);  
+            } else {
+                const confirmDelete = confirm('Are you sure you want to delete the translation for this line?');
 
-                translationLineInput.innerText = '';
-                translationLineInput.classList.add('hidden');
-    
-                updatePage(parentPageElement);            
+                if (confirmDelete == true) {
+                    hideTranslationLine(lineWrapperElement, translationLineInput, parentPageElement);        
+                }
             }
         } else {
-            lineWrapperElement.classList.add('withTranslationLine');
-
-            translationLineInput.classList.remove('hidden');
-            translationLineInput.focus();
-
-            updatePage(parentPageElement);
+            showTranslationLine(lineWrapperElement, translationLineInput, parentPageElement);
         }
     }
 
@@ -363,6 +388,8 @@ function insertlineInput(params) {
     } else if (typeof(params.position) === 'object') {
         if (params.position.after) {
             params.position.after.parentNode.insertBefore(lineWrapperElement, params.position.after.nextSibling);
+        } else if (params.position.before) {
+            params.position.before.parentNode.insertBefore(lineWrapperElement, params.position.before);
         }
     }
 
