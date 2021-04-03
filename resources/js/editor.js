@@ -213,7 +213,11 @@ function insertlineInput(params) {
         if (selection.element.classList.contains('annotatedNoteText')) {   
             selection.element.dataset.lineHeight = selection.element.clientHeight;
         } else if (selection.element.classList.contains('annotated')) {
-            if (!keydown.metaKey && keydown.key !== 'Backspace') {
+            if (
+                !keydown.metaKey &&
+                keydown.key !== 'Backspace' &&
+                !keydown.key.contains('Arrow')
+            ) {
                 if (selection.start === selection.element.innerText.length) {
                     keydown.preventDefault();
     
