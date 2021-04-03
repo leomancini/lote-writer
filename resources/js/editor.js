@@ -188,7 +188,15 @@ function insertlineInput(params) {
             if (parseInt(selection.element.dataset.lineHeight) !== selection.element.clientHeight) {
                 selection.element.closest('.annotatedNote').style.marginTop = `${(selection.element.clientHeight * -1) - 16}px`; // This forumla has to match CSS
             }
-        } 
+        }
+
+        if (selection.field.querySelector('.annotated')) {
+            selection.field.querySelectorAll('.annotated').forEach((annotatedTextRange) => {
+                if (!annotatedTextRange.childNodes[1]) {
+                    annotatedTextRange.remove();
+                }
+            });
+        }
 
         updatePageDebounced(parentPageElement);
     }
@@ -200,6 +208,7 @@ function insertlineInput(params) {
         
         // TODO: Do something to prevent lines from wrapping
         // Maybe create a new line and put the overflow into the new line
+
 
         if (selection.element.classList.contains('annotatedNoteText')) {   
             selection.element.dataset.lineHeight = selection.element.clientHeight;
@@ -250,6 +259,8 @@ function insertlineInput(params) {
                 // TODO: If in the middle of a line, break the line and put stuff to the right on a new line???
             }
         } else if (keydown.key === 'Backspace') {
+            const selection = getSelectionData(lineInput); // Get selection data again since annotations may have been deleted since last keypress
+
             if (selection.start === 0) {
                 if (lineWrapperElement.previousElementSibling) {
                     const previousLineInput = lineWrapperElement.previousElementSibling.querySelector('.lineInput');
