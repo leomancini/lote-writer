@@ -99,8 +99,12 @@ function addAnnotation(selectionData) {
 
     const annotatedNoteElement = document.createElement('div');
     annotatedNoteElement.classList = 'annotatedNote';
-    annotatedRangeElement.appendChild(annotatedNoteElement);
 
+    const annotatedNoteText = document.createElement('span');
+    annotatedNoteText.classList = 'annotatedNoteText';
+    annotatedNoteElement.appendChild(annotatedNoteText);
+
+    annotatedRangeElement.appendChild(annotatedNoteElement);
     annotatedRangeElement.appendChild(rangeTextValue);
     range.insertNode(annotatedRangeElement);
 
@@ -174,9 +178,17 @@ function insertlineInput(params) {
     }
 
     lineInput.onkeyup = (keyup) => {
+        const selection = getSelectionData(lineInput);
+
         if (lineInput.innerText !== '') {
             lineWrapperElement.classList.add('filled');
         }
+
+        if (selection.element.classList.contains('annotatedNoteText')) {
+            if (parseInt(selection.element.dataset.lineHeight) !== selection.element.clientHeight) {
+                selection.element.closest('.annotatedNote').style.marginTop = `${(selection.element.clientHeight * -1) - 16}px`; // This forumla has to match CSS
+            }
+        } 
 
         updatePageDebounced(parentPageElement);
     }
@@ -189,7 +201,9 @@ function insertlineInput(params) {
         // TODO: Do something to prevent lines from wrapping
         // Maybe create a new line and put the overflow into the new line
 
-        if (selection.element.classList.contains('annotated')) {
+        if (selection.element.classList.contains('annotatedNoteText')) {   
+            selection.element.dataset.lineHeight = selection.element.clientHeight;
+        } else if (selection.element.classList.contains('annotated')) {
             if (!keydown.metaKey && keydown.key !== 'Backspace') {
                 if (selection.start === selection.element.innerText.length) {
                     keydown.preventDefault();
@@ -259,7 +273,6 @@ function insertlineInput(params) {
                     }
                 }
             }
-
         // TODO: Figure out if pressing arrow keys should focus translation lines as well?
         } else if (keydown.key === 'ArrowUp') {
             if (lineWrapperElement.previousElementSibling) {
@@ -281,6 +294,17 @@ function insertlineInput(params) {
 
     lineInput.onblur = (blur) => {
         blur.preventDefault();
+    }
+
+    lineWrapperElement.onmouseout = (mouseout) => {
+        // After hovering over an annotation, if the next element hovered over is the note, don't hide the note
+        if (mouseout.toElement) {
+            if (mouseout.toElement.classList.contains('annotated')) {
+                mouseout.fromElement.classList.add('hover');
+            } else {
+                mouseout.fromElement.classList.remove('hover');
+            }
+        }
     }
 
     lineWrapperElement.onmouseup = (mouseup) => {

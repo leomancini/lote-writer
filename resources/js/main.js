@@ -53,6 +53,7 @@ async function render() {
         const allLineWrappers = document.querySelectorAll('.lineWrapper');
         // allLineWrappers[0].querySelector('.lineInput').focus();
 
+        // TODO: If first character has an annotation, don't focus the annotation note, focus the line input
         setCaretPosition({
             field: allLineWrappers[0].querySelector('.lineInput'),
             position: 'START'

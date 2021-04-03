@@ -187,31 +187,42 @@ html {
 							border-radius: 8px;
 							transition: all 0.2s;
 
-							&:hover {
+							&:hover, &.hover {
 								background: rgba(46, 148, 243, 0.2);
 
 								.annotatedNote {
 									opacity: 1;
 									pointer-events: all;
-									margin-top: -@lineHeight - 8px;
+									margin-top: -@lineHeight - 18px;
 								}
 							}
 
 							.annotatedNote {
 								position: absolute;
 								display: inline-block;
-								width: 120px;
-								margin-left: -60px;
-								height: 30px;
-								background: white;
-								border-radius: 6px;
-								background: rgba(0, 0, 0, 0.2);
-								// box-shadow: 0px 2px 14px rgba(0, 0, 0, 0.15);
+								margin-top: -@lineHeight - 16px;
+								transition: all 0.2s;
 								opacity: 0;
 								pointer-events: none;
-								transition: all 0.2s;
-								margin-top: -@lineHeight - 4px;
-								left: 50%;
+								min-width: 64px;
+								min-height: 32px;
+								width: 320px;
+								font-size: 0;
+
+								.annotatedNoteText {
+									position: relative;
+									border-radius: 6px;
+									background: rgba(0, 0, 0, 0.65);
+									color: rgba(255, 255, 255, 1);
+									font-size: 14px;
+									margin: 8px 0;
+									padding: 8px 12px;
+									min-width: 32px;
+									min-height: 18px;
+									width: fit-content;
+									height: 100%;
+									display: inline-block;
+								}
 							}
 						}
 					}
