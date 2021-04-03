@@ -11,6 +11,7 @@ function getSelectionData(field) {
         if (selection.anchorNode != undefined) { selection.collapseToEnd(); }
     }
 
+
     const selectionData = {
         field,
         element: selection.anchorNode.parentElement,
@@ -19,8 +20,9 @@ function getSelectionData(field) {
         range,
         start: range.startOffset,
         end: range.endOffset,
-        isCaretAtStartOfLine: (range.startOffset && range.endOffset) === 0,
-        isCaretAtEndOfLine: range.startOffset === selection.anchorNode.parentElement.textContent.length,
+        lineLength: selection.anchorNode.parentElement.textContent.length,
+        isCaretAtStartOfLine: caretPosition === 0,
+        isCaretAtEndOfLine: caretPosition === selection.anchorNode.parentElement.textContent.length,
         isTextSelected: range.startOffset !== range.endOffset,
         value: selection.toString(),
         boundingClientRect: selection.getRangeAt(0).getBoundingClientRect()
@@ -78,8 +80,11 @@ function renderTextAccessory(selectionData) {
         textAccessoryOptionIcon.classList = 'textAccessoryOptionIcon';
 
         textAccessoryOptionIcon.onclick = (click) => {
-            addAnnotation(selectionData);
-            
+            const newAnnotation = addAnnotation(selectionData);
+           
+            newAnnotation.annotatedRangeElement.classList.add('hover');
+            // TODO: Focus annotated text
+
             removeTextAccessory();
         }
 
@@ -97,18 +102,24 @@ function addAnnotation(selectionData) {
     const annotatedRangeElement = document.createElement('span');
     annotatedRangeElement.classList = 'annotated';
 
-    const annotatedNoteElement = document.createElement('div');
-    annotatedNoteElement.classList = 'annotatedNote';
+    const annotatedNoteWrapperElement = document.createElement('div');
+    annotatedNoteWrapperElement.classList = 'annotatedNote';
 
-    const annotatedNoteText = document.createElement('span');
-    annotatedNoteText.classList = 'annotatedNoteText';
-    annotatedNoteElement.appendChild(annotatedNoteText);
+    const annotatedNoteTextElement = document.createElement('span');
+    annotatedNoteTextElement.classList = 'annotatedNoteText';
+    annotatedNoteWrapperElement.appendChild(annotatedNoteTextElement);
 
-    annotatedRangeElement.appendChild(annotatedNoteElement);
+    annotatedRangeElement.appendChild(annotatedNoteWrapperElement);
     annotatedRangeElement.appendChild(rangeTextValue);
     range.insertNode(annotatedRangeElement);
 
     updatePage(selectionData.field.closest('.page'));
+
+    return {
+        annotatedRangeElement,
+        annotatedNoteWrapperElement,
+        annotatedNoteTextElement
+    }
 }
 
 function removeTextAccessory() {
@@ -209,34 +220,49 @@ function insertlineInput(params) {
         // TODO: Do something to prevent lines from wrapping
         // Maybe create a new line and put the overflow into the new line
 
-
         if (selection.element.classList.contains('annotatedNoteText')) {   
             selection.element.dataset.lineHeight = selection.element.clientHeight;
         } else if (selection.element.classList.contains('annotated')) {
             if (
-                !keydown.metaKey &&
-                keydown.key !== 'Backspace' &&
-                !keydown.key.contains('Arrow')
+                !keydown.metaKey
             ) {
-                if (selection.start === selection.element.innerText.length) {
-                    keydown.preventDefault();
+                if (keydown.key === 'ArrowRight') {
+                    // TODO: Don't allow arrow keys to navigate into annotation note
+                }
+
+                // If caret is at the end of an annotated range
+                if (selection.start === selection.element.childNodes[1].textContent.length) {
+                    if (
+                        keydown.key !== 'Backspace'
+                    ) {
+                        keydown.preventDefault();
+                        const zeroWidthSpaceCharacter = document.createTextNode('\u200B');
+                        insertAfter(selection.element, zeroWidthSpaceCharacter);
+        
+                        setCaretPosition({
+                            field: lineInput,
+                            position: selection.caretPosition + 1
+                        });
+                    }
     
-                    const zeroWidthSpaceCharacter = document.createTextNode('\u200B');
-                    insertAfter(selection.element, zeroWidthSpaceCharacter);
-    
-                    setCaretPosition({
-                        field: lineInput,
-                        position: selection.caretPosition + 1
-                    });
-    
-                    const character = document.createTextNode(keydown.key);
-                    insertAfter(selection.element, character);
+                    if (keydown.key === 'Enter') {
+                        selection.isCaretAtEndOfLine = true;
+                    } else if (keydown.key === 'ArrowRight') {
+                        selection.isCaretAtEndOfLine = true;
+                    } else if (
+                        keydown.key !== 'ArrowLeft' &&
+                        keydown.key !== 'Backspace'
+                    ) {
+                        const character = document.createTextNode(keydown.key);
+                        insertAfter(selection.element, character);
+                    }
                 }
             }
         }
 
         if (keydown.key === 'Enter') {
             keydown.preventDefault();
+            console.log(selection);
             const delayToInsertlineInput = 100; // This is mostly to give time for the macOS IME window to clear
 
             if (selection.isCaretAtStartOfLine) {
@@ -297,12 +323,20 @@ function insertlineInput(params) {
             if (lineWrapperElement.nextElementSibling) {
                 lineWrapperElement.nextElementSibling.querySelector('.lineInput').focus();
             }
+        } else if (keydown.key === 'ArrowLeft') {
+            if (selection.isCaretAtStartOfLine && lineWrapperElement.previousElementSibling) {
+                keydown.preventDefault();
+
+                lineWrapperElement.previousElementSibling.querySelector('.lineInput').focus();
+                setCaretPosition({
+                    field: lineWrapperElement.previousElementSibling,
+                    position: 'END'
+                });
+            }
         } else if (keydown.key === 'ArrowRight') {
-            if (selection.caretPosition === lineInput.textContent.length) {
-                if (lineWrapperElement.nextElementSibling) {
-                    lineWrapperElement.nextElementSibling.querySelector('.lineInput').focus();
-                    keydown.preventDefault();
-                }
+            if (selection.isCaretAtEndOfLine && lineWrapperElement.nextElementSibling) {
+                keydown.preventDefault();
+                lineWrapperElement.nextElementSibling.querySelector('.lineInput').focus();
             }
         }
     }
