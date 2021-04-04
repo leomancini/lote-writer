@@ -20,9 +20,9 @@ async function updatePage(pageElement) {
     if (pageID) {
         let lines = [];
     
-        pageElement.querySelectorAll('.lineWrapper').forEach((lineWrapper) => {
+        pageElement.querySelectorAll('.lineWrapper').forEach((lineWrapper) => {            
             lines.push({
-                content: lineWrapper.querySelector('.lineInput').innerHTML,
+                content: lineWrapper.querySelector('.lineInput').innerHTML.replaceAll('\u200B', ''),
                 translation: lineWrapper.querySelector('.translationLineInput').innerHTML,
                 transliteration: null
             });
