@@ -104,6 +104,7 @@ function addAnnotation(selectionData) {
 
     const annotatedNoteWrapperElement = document.createElement('div');
     annotatedNoteWrapperElement.classList = 'annotatedNote';
+    annotatedNoteWrapperElement.setAttribute('contenteditable', false);
 
     const annotatedNoteTextElement = document.createElement('span');
     annotatedNoteTextElement.classList = 'annotatedNoteText';
@@ -232,17 +233,20 @@ function insertlineInput(params) {
 
                 // If caret is at the end of an annotated range
                 if (selection.start === selection.element.childNodes[1].textContent.length) {
+                    keydown.preventDefault();
+                    
                     if (
                         keydown.key !== 'Backspace'
                     ) {
-                        keydown.preventDefault();
-                        const zeroWidthSpaceCharacter = document.createTextNode('\u200B');
-                        insertAfter(selection.element, zeroWidthSpaceCharacter);
-        
                         setCaretPosition({
                             field: lineInput,
                             position: selection.caretPosition + 1
                         });
+                        const zeroWidthSpaceCharacter = document.createTextNode('\u200B');
+                        insertAfter(selection.element, zeroWidthSpaceCharacter);
+        
+                        console.log('here');
+
                     }
     
                     if (keydown.key === 'Enter') {

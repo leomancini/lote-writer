@@ -168,7 +168,6 @@ html {
 	
 					.lineInput {
 						position: absolute;
-						width: 100%;
 						height: @lineHeight;
 						outline: none;
 						border: none;
@@ -179,6 +178,7 @@ html {
 						width: 50%;
 						margin-left: 50%;
 						left: -25%;
+						user-select: none!important;
 
 						.annotated {
 							position: relative;
@@ -194,6 +194,10 @@ html {
 									opacity: 1;
 									pointer-events: all;
 									margin-top: -@lineHeight - 18px;
+
+									.annotatedNoteText {
+										user-select: text;
+									}
 								}
 							}
 
@@ -208,6 +212,7 @@ html {
 								min-height: 32px;
 								width: 320px;
 								font-size: 0;
+								user-select: none;
 
 								.annotatedNoteText {
 									position: relative;
@@ -222,6 +227,7 @@ html {
 									width: fit-content;
 									height: 100%;
 									display: inline-block;
+									user-select: none;
 								}
 							}
 						}
