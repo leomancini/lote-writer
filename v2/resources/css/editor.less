@@ -9,13 +9,52 @@
         cursor: pointer;
         position: absolute;
         z-index: 20;
-        background: rgba(0, 0, 0, 0.6);
-        color: rgba(255, 255, 255, 1);
-        border-radius: 100px;
-        padding: 4px 10px;
+        padding: 4px;
+        font-size: 0;
         margin-bottom: 7px;
-        font-size: 14px;
         -webkit-transform: translateX(-50%);
         transform: translateX(-50%);
+        background: #FFFFFF;
+        box-shadow: 0px 2px 14px rgba(0, 0, 0, 0.15);
+        border-radius: 60px;
+
+        .action {
+            width: 56px;
+            height: 38px;
+            display: inline-block;
+            overflow: hidden;
+            background-size: 24px;
+            background-repeat: no-repeat;
+            background-position: 50%;
+            border-radius: 38px;
+
+            &:hover {
+                background-color: rgba(46, 148, 243, 0.1);
+            }
+
+            &.add-note {
+               background-image: url('../icons/tooltip/chat.png');
+
+                &:hover {
+                    background-image: url('../icons/tooltip/chat-hover.png');
+                }
+            }
+
+            &.add-to-flash-cards {
+               background-image: url('../icons/tooltip/plus.png');
+
+                &:hover {
+                    background-image: url('../icons/tooltip/plus-hover.png');
+                }
+            }
+
+            &.translate {
+               background-image: url('../icons/tooltip/search.png');
+
+                &:hover {
+                    background-image: url('../icons/tooltip/search-hover.png');
+                }
+            }
+        }
     }
 }

@@ -51,9 +51,30 @@ class SelectionSizeTooltip {
         // Find a center-ish x position from the selection endpoints (when
         // crossing lines, end may be more to the left)
         let left = Math.max((start.left + end.left) / 2, start.left + 3);
+
+        const tooltipActionsHolder = document.createElement('div');
+
+        const tooltipActions = [
+            {
+                id: 'add-note'
+            },
+            {
+                id: 'add-to-flash-cards'
+            },
+            {
+                id: 'translate'
+            }
+        ];
+
+        tooltipActions.forEach((action) => {
+            const tooltipAction = document.createElement('div');
+            tooltipAction.classList = `action ${action.id}`;
+            tooltipActionsHolder.appendChild(tooltipAction);
+        });
+
         this.tooltip.style.left = (left - box.left) + 'px';
         this.tooltip.style.bottom = (box.bottom - start.top) + 'px';
-        this.tooltip.textContent = 'Add a note';
+        this.tooltip.innerHTML = tooltipActionsHolder.innerHTML;
     }
 
     destroy() {
