@@ -18,7 +18,42 @@ class SelectionSizeTooltip {
         this.tooltip.className = 'tooltip';
 
         this.tooltip.onclick = (click) => {
-            console.log('click');
+            let clickedAction = click.target;
+            let clickedActionId = clickedAction.dataset.actionId;
+
+            switch(clickedActionId) {
+                case 'add-note':
+
+                break;
+                case 'add-to-flash-cards':
+
+                break;
+                case 'translate':
+                    let myHeaders = new Headers();
+                    myHeaders.append("Content-Type", "application/json");
+
+                    let requestOptions = {
+                        method: 'POST',
+                        headers: myHeaders,
+                        body: JSON.stringify({
+                            "data": {
+                                "text": window.lastSelectedText
+                            }
+                        })
+                    };
+
+                    fetch("http://localhost:3000/translate", requestOptions)
+                        .then(response => response.json())
+                        .then(result => {
+                            console.log({
+                                selection: window.lastSelectedText,
+                                translated: result.data[0].translatedText
+                            });
+                        })
+                        .catch(error => console.log('error', error));
+                break;
+            }
+
             this.tooltip.style.display = 'none';
             return;
         }
@@ -69,12 +104,15 @@ class SelectionSizeTooltip {
         tooltipActions.forEach((action) => {
             const tooltipAction = document.createElement('div');
             tooltipAction.classList = `action ${action.id}`;
+            tooltipAction.dataset.actionId = action.id;
             tooltipActionsHolder.appendChild(tooltipAction);
         });
 
         this.tooltip.style.left = (left - box.left) + 'px';
         this.tooltip.style.bottom = (box.bottom - start.top) + 'px';
         this.tooltip.innerHTML = tooltipActionsHolder.innerHTML;
+
+        window.lastSelectedText = window.getSelection().toString();
     }
 
     destroy() {
