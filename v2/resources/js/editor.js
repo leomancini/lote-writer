@@ -12,6 +12,22 @@ let selectionSizePlugin = new Plugin({
     }
 });
 
+// document.onclick = (e) => {
+//     console.log(e.target);
+    
+//     if (document.querySelector('.tooltip')) {
+//         document.querySelector('.tooltip').style.display = 'none';
+//     }
+
+//     if (document.querySelector('.addNote')) {
+//         document.querySelector('.addNote').remove();
+//     }
+
+//     if (document.querySelector('.translateResult')) {
+//         document.querySelector('.translateResult').remove();
+//     }
+// };
+
 class SelectionSizeTooltip {
     constructor(view) {
         this.tooltip = document.createElement('div');
@@ -23,26 +39,47 @@ class SelectionSizeTooltip {
 
             switch(clickedActionId) {
                 case 'add-note':
+                    let addNoteContainer = document.createElement('div');
+                    addNoteContainer.className = 'addNote';
+                    addNoteContainer.style.left = `${this.tooltip.offsetLeft}px`;
+                    addNoteContainer.style.top = `${this.tooltip.offsetTop}px`;
 
+                    let field = document.createElement('div');
+                    field.contentEditable = true;
+                    field.dataset.placeholder = 'Add note...';
+                    field.className = 'field';
+                    addNoteContainer.appendChild(field);
+
+                    field.onkeydown = (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addNoteContainer.remove();
+
+                            // SAVE NOTE
+                            console.log('Save note', field.innerText);
+                        }
+                    }
+
+                    document.querySelector('#editor').appendChild(addNoteContainer);
                 break;
                 case 'add-to-flash-cards':
 
                 break;
                 case 'translate':
                     let myHeaders = new Headers();
-                    myHeaders.append("Content-Type", "application/json");
+                    myHeaders.append('Content-Type', 'application/json');
 
                     let requestOptions = {
                         method: 'POST',
                         headers: myHeaders,
                         body: JSON.stringify({
-                            "data": {
-                                "text": window.lastSelectedText
+                            'data': {
+                                'text': window.lastSelectedText
                             }
                         })
                     };
 
-                    fetch("http://localhost:3000/translate", requestOptions)
+                    fetch('http://localhost:3000/translate', requestOptions)
                         .then(response => response.json())
                         .then(result => {
                             console.log({
@@ -51,6 +88,31 @@ class SelectionSizeTooltip {
                             });
                         })
                         .catch(error => console.log('error', error));
+
+                    let result = 'I am a student.';
+
+                    let translateResultContainer = document.createElement('div');
+                    translateResultContainer.className = 'translateResult';
+                    translateResultContainer.style.left = `${this.tooltip.offsetLeft}px`;
+                    translateResultContainer.style.top = `${this.tooltip.offsetTop}px`;
+
+                    let loading = document.createElement('div');
+                    loading.className = 'loading';
+                    translateResultContainer.appendChild(loading);
+
+                    document.querySelector('#editor').appendChild(translateResultContainer);
+
+                    setTimeout(() => {
+                        loading.remove();
+                        let text = document.createElement('div');
+                        text.className = 'text';
+                        text.innerText = result;
+                        translateResultContainer.appendChild(text);
+                    
+                        setTimeout(() => {
+                            translateResultContainer.remove();
+                        }, 2000);
+                    }, 1000);
                 break;
             }
 
@@ -109,8 +171,16 @@ class SelectionSizeTooltip {
         });
 
         this.tooltip.style.left = (left - box.left) + 'px';
-        this.tooltip.style.bottom = (box.bottom - start.top) + 'px';
+        this.tooltip.style.bottom = (box.bottom - start.top + 4) + 'px';
         this.tooltip.innerHTML = tooltipActionsHolder.innerHTML;
+
+        if (document.querySelector('.addNote')) {
+            document.querySelector('.addNote').remove();
+        }
+
+        if (document.querySelector('.translateResult')) {
+            document.querySelector('.translateResult').remove();
+        }
 
         window.lastSelectedText = window.getSelection().toString();
     }
