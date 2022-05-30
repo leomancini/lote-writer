@@ -1,34 +1,92 @@
 const { EditorState } = require('prosemirror-state')
-const { EditorView } = require('prosemirror-view')
+const { EditorView, Decoration, DecorationSet } = require('prosemirror-view')
 const { DOMParser } = require('prosemirror-model')
 const { Plugin } = require('prosemirror-state')
 
 const { schema } = require('prosemirror-schema-basic')
 const { exampleSetup } = require('prosemirror-example-setup')
 
-let selectionSizePlugin = new Plugin({
+let tooltipPlugin = new Plugin({
     view(editorView) {
-        return new SelectionSizeTooltip(editorView);
+        return new tooltip(editorView);
     }
 });
 
-// document.onclick = (e) => {
-//     console.log(e.target);
-    
-//     if (document.querySelector('.tooltip')) {
-//         document.querySelector('.tooltip').style.display = 'none';
-//     }
+function addNoteToAnnotation(annotationID, text) {
+    console.log(annotationID, text);
+}
 
-//     if (document.querySelector('.addNote')) {
-//         document.querySelector('.addNote').remove();
-//     }
+function addAnnotation(view) {
+    let annotationID = Date.now();
 
-//     if (document.querySelector('.translateResult')) {
-//         document.querySelector('.translateResult').remove();
-//     }
-// };
+    let transaction = view.state.tr.setMeta('annotationPlugin', {
+        fromPos: view.state.selection.$from.pos,
+        toPos: view.state.selection.$to.pos,
+        annotationID
+    });
 
-class SelectionSizeTooltip {
+    view.dispatch(transaction);
+
+    return annotationID;
+}
+
+let annotatedTexts = document.querySelectorAll('.annotatedText');
+
+annotatedTexts.forEach((annotatedText) => {
+    annotatedText.onmouseover = () => {
+        console.log('asd');
+    }
+});
+
+let annotationPlugin = new Plugin({
+    state: {
+        init(_, { doc }) {
+            let initialAnnotations = [
+                Decoration.inline(1, 5, { class: 'annotatedText' })
+            ];
+
+            return DecorationSet.create(doc, initialAnnotations);
+        },
+        apply(tr, set) {
+            if (tr.getMeta('annotationPlugin')) {
+                const { fromPos, toPos, annotationID } = tr.getMeta('annotationPlugin');
+
+                return set.add(tr.doc, [
+                    Decoration.inline(fromPos, toPos, { class: 'annotatedText', 'data-annotation-id': annotationID  })
+                ]);
+            } else {
+                return set.map(tr.mapping, tr.doc);
+            }
+        }
+    },
+    props: {
+        decorations(state) {
+            return annotationPlugin.getState(state);
+        }
+    }
+})
+
+function hideAccessory(type) {
+    if (type === 'tooltip') {
+        if (document.querySelector('.tooltip')) {
+            document.querySelector('.tooltip').style.display = 'none';
+        }
+    } else {
+        if (document.querySelector(`.${type}`)) {
+            document.querySelector(`.${type}`).remove();
+        }
+    }
+}
+
+document.onclick = (e) => {
+    if (e.target.tagName === 'HTML') {
+        hideAccessory('tooltip');
+        hideAccessory('addNote');
+        hideAccessory('translateResult');
+    }
+};
+
+class tooltip {
     constructor(view) {
         this.tooltip = document.createElement('div');
         this.tooltip.className = 'tooltip';
@@ -36,13 +94,17 @@ class SelectionSizeTooltip {
         this.tooltip.onclick = (click) => {
             let clickedAction = click.target;
             let clickedActionId = clickedAction.dataset.actionId;
+            let tooltipPosition = {
+                top: this.tooltip.offsetTop,
+                left: this.tooltip.offsetLeft,
+            }
 
             switch(clickedActionId) {
                 case 'add-note':
                     let addNoteContainer = document.createElement('div');
                     addNoteContainer.className = 'addNote';
-                    addNoteContainer.style.left = `${this.tooltip.offsetLeft}px`;
-                    addNoteContainer.style.top = `${this.tooltip.offsetTop}px`;
+                    addNoteContainer.style.left = `${tooltipPosition.left}px`;
+                    addNoteContainer.style.top = `${tooltipPosition.top}px`;
 
                     let field = document.createElement('div');
                     field.contentEditable = true;
@@ -50,28 +112,42 @@ class SelectionSizeTooltip {
                     field.className = 'field';
                     addNoteContainer.appendChild(field);
 
+                    let annotationID = addAnnotation(view);
+
                     field.onkeydown = (e) => {
                         if (e.key === 'Enter') {
                             e.preventDefault();
                             addNoteContainer.remove();
 
-                            // SAVE NOTE
-                            console.log('Save note', field.innerText);
+                            addNoteToAnnotation(annotationID, field.innerText);
                         }
                     }
 
                     document.querySelector('#editor').appendChild(addNoteContainer);
+
+                    field.focus();
                 break;
                 case 'add-to-flash-cards':
 
                 break;
                 case 'translate':
-                    let myHeaders = new Headers();
-                    myHeaders.append('Content-Type', 'application/json');
+                    let translateResultContainer = document.createElement('div');
+                    translateResultContainer.className = 'translateResult';
+                    translateResultContainer.style.left = `${tooltipPosition.left}px`;
+                    translateResultContainer.style.top = `${tooltipPosition.top}px`;
+
+                    let loading = document.createElement('div');
+                    loading.className = 'loading';
+                    translateResultContainer.appendChild(loading);
+
+                    document.querySelector('#editor').appendChild(translateResultContainer);
+
+                    let headers = new Headers();
+                    headers.append('Content-Type', 'application/json');
 
                     let requestOptions = {
                         method: 'POST',
-                        headers: myHeaders,
+                        headers,
                         body: JSON.stringify({
                             'data': {
                                 'text': window.lastSelectedText
@@ -82,37 +158,20 @@ class SelectionSizeTooltip {
                     fetch('http://localhost:3000/translate', requestOptions)
                         .then(response => response.json())
                         .then(result => {
-                            console.log({
-                                selection: window.lastSelectedText,
-                                translated: result.data[0].translatedText
-                            });
+                            let translatedText = result.data[0].translatedText;
+
+                            loading.remove();
+
+                            let text = document.createElement('div');
+                            text.className = 'text';
+                            text.innerText = translatedText;
+                            translateResultContainer.appendChild(text);
+                        
+                            setTimeout(() => {
+                                translateResultContainer.remove();
+                            }, 2000);
                         })
                         .catch(error => console.log('error', error));
-
-                    let result = 'I am a student.';
-
-                    let translateResultContainer = document.createElement('div');
-                    translateResultContainer.className = 'translateResult';
-                    translateResultContainer.style.left = `${this.tooltip.offsetLeft}px`;
-                    translateResultContainer.style.top = `${this.tooltip.offsetTop}px`;
-
-                    let loading = document.createElement('div');
-                    loading.className = 'loading';
-                    translateResultContainer.appendChild(loading);
-
-                    document.querySelector('#editor').appendChild(translateResultContainer);
-
-                    setTimeout(() => {
-                        loading.remove();
-                        let text = document.createElement('div');
-                        text.className = 'text';
-                        text.innerText = result;
-                        translateResultContainer.appendChild(text);
-                    
-                        setTimeout(() => {
-                            translateResultContainer.remove();
-                        }, 2000);
-                    }, 1000);
                 break;
             }
 
@@ -152,21 +211,15 @@ class SelectionSizeTooltip {
         const tooltipActionsHolder = document.createElement('div');
 
         const tooltipActions = [
-            {
-                id: 'add-note'
-            },
-            {
-                id: 'add-to-flash-cards'
-            },
-            {
-                id: 'translate'
-            }
+            'add-note',
+            'add-to-flash-cards',
+            'translate'
         ];
 
         tooltipActions.forEach((action) => {
             const tooltipAction = document.createElement('div');
-            tooltipAction.classList = `action ${action.id}`;
-            tooltipAction.dataset.actionId = action.id;
+            tooltipAction.classList = `action ${action}`;
+            tooltipAction.dataset.actionId = action;
             tooltipActionsHolder.appendChild(tooltipAction);
         });
 
@@ -174,13 +227,8 @@ class SelectionSizeTooltip {
         this.tooltip.style.bottom = (box.bottom - start.top + 4) + 'px';
         this.tooltip.innerHTML = tooltipActionsHolder.innerHTML;
 
-        if (document.querySelector('.addNote')) {
-            document.querySelector('.addNote').remove();
-        }
-
-        if (document.querySelector('.translateResult')) {
-            document.querySelector('.translateResult').remove();
-        }
+        hideAccessory('addNote');
+        hideAccessory('translateResult');
 
         window.lastSelectedText = window.getSelection().toString();
     }
@@ -193,6 +241,6 @@ class SelectionSizeTooltip {
 window.view = new EditorView(document.querySelector('#editor'), {
     state: EditorState.create({
         doc: DOMParser.fromSchema(schema).parse(document.querySelector('#content')),
-        plugins: exampleSetup({ schema }).concat(selectionSizePlugin)
+        plugins: exampleSetup({ schema }).concat(tooltipPlugin, annotationPlugin)
     })
 });

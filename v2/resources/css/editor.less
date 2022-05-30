@@ -2,12 +2,11 @@
 @import 'prosemirror.less';
 @import 'toolbar.less';
 
-
 .centeredTooltip() {
     -webkit-transform: translateX(-50%);
     transform: translateX(-50%);
     background: #FFFFFF;
-    box-shadow: 0px 2px 14px rgba(0, 0, 0, 0.15);
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.08), 0px 4px 14px rgba(0, 0, 0, 0.1);
     border-radius: 24px;
 }
 
@@ -33,7 +32,7 @@
             outline: none;
             padding: 0 16px;
 
-            &:empty:not(:focus):before {
+            &:empty:before {
                 color: rgba(0, 0, 0, 0.2);
                 pointer-events: none;
                 content: attr(data-placeholder);
@@ -47,10 +46,10 @@
         padding: 4px;
 
         .text {
-            min-height: 38px;
+            min-height: 24px;
             height: fit-content;
-            line-height: 38px;
-            padding: 0 16px;
+            line-height: 24px;
+            padding: 7px 14px;
         }
 
         .loading {
@@ -66,11 +65,20 @@
         }
     }
 
+    .annotatedText {
+        display: inline-block;
+        background: rgba(46, 148, 243, 0.1);
+
+        &:hover {
+            background: rgba(46, 148, 243, 0.3);
+        }
+    }
+
     .tooltip {
         cursor: pointer;
         position: absolute;
         z-index: 20;
-        padding: 4px;
+        padding: @grid;
         font-size: 0;
         margin-bottom: 7px;
         .centeredTooltip();
