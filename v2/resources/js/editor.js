@@ -18,8 +18,10 @@ function loadAnnotations() {
             showAnnotationTooltip(annotatedText.dataset.annotationId);
         }
 
-        annotatedText.onmouseout = () => {
-            hideAnnotationTooltip(annotatedText.dataset.annotationId);
+        annotatedText.onmouseout = (e) => {
+            if (!(e.toElement.classList.contains('annotationTooltipContainer') || e.toElement.parentNode.classList.contains('annotationTooltipContainer'))) {
+                hideAnnotationTooltip(annotatedText.dataset.annotationId);
+            }
         }
     });
 }
@@ -32,24 +34,35 @@ function showAnnotationTooltip(annotationID) {
     let annotatedText = document.querySelector(`.annotatedText[data-annotation-id='${annotationID}']`);
 
     let viewAnnotationTooltipContainer = document.createElement('div');
-    viewAnnotationTooltipContainer.className = 'annotationTooltip';
+    viewAnnotationTooltipContainer.className = 'annotationTooltipContainer';
     viewAnnotationTooltipContainer.setAttribute('data-annotation-id', annotationID);
+
+    let tooltip = document.createElement('div');
+    tooltip.className = 'annotationTooltip';
+    viewAnnotationTooltipContainer.appendChild(tooltip);
 
     let text = document.createElement('div');
     text.className = 'text';
     text.innerText = window.annotations[annotationID];
-    viewAnnotationTooltipContainer.appendChild(text);
+    tooltip.appendChild(text);
 
-    viewAnnotationTooltipContainer.style.left = `${annotatedText.offsetLeft + (annotatedText.offsetWidth / 2)}px`;
-    viewAnnotationTooltipContainer.style.top = `${annotatedText.offsetTop + 28}px`;
+    viewAnnotationTooltipContainer.style.left = `${annotatedText.offsetLeft - 16}px`;
+    viewAnnotationTooltipContainer.style.width = `${annotatedText.offsetWidth + 32}px`;
+    viewAnnotationTooltipContainer.style.top = `${annotatedText.offsetTop + annotatedText.offsetHeight}px`;
 
-    document.querySelector('#editor').appendChild(viewAnnotationTooltipContainer);
+    viewAnnotationTooltipContainer.onmouseout = (e) => {
+        hideAnnotationTooltip(annotationID);
+    }
 
-    console.log(annotationID, window.annotations[annotationID]);
+    if (window.annotations[annotationID]) {
+        document.querySelector('#editor').appendChild(viewAnnotationTooltipContainer);
+
+        console.log(annotationID, window.annotations[annotationID]);
+    }
 }
 
 function hideAnnotationTooltip(annotationID) {
-    document.querySelector(`.annotationTooltip[data-annotation-id='${annotationID}']`).remove();
+    document.querySelector(`.annotationTooltipContainer[data-annotation-id='${annotationID}']`).remove();
 }
 
 function addAnnotation(view) {
@@ -70,8 +83,10 @@ function addAnnotation(view) {
             showAnnotationTooltip(annotatedText.dataset.annotationId);
         }
 
-        annotatedText.onmouseout = () => {
-            hideAnnotationTooltip(annotatedText.dataset.annotationId);
+        annotatedText.onmouseout = (e) => {
+            if (!(e.toElement.classList.contains('annotationTooltipContainer') || e.toElement.parentNode.classList.contains('annotationTooltipContainer'))) {
+                hideAnnotationTooltip(annotatedText.dataset.annotationId);
+            }
         }
     });
 
@@ -233,50 +248,47 @@ class tooltip {
     update(view, lastState) {
         let state = view.state;
 
-        // Don't do anything if the document/selection didn't change
-        if (lastState && lastState.doc.eq(state.doc) &&
-        lastState.selection.eq(state.selection)) return
+        if (lastState && lastState.doc.eq(state.doc) && lastState.selection.eq(state.selection)) { return false; };
 
-        // Hide the tooltip if the selection is empty
         if (state.selection.empty) {
             this.tooltip.style.display = 'none';
-            return;
+
+            return false;
+        } else {
+            this.tooltip.style.display = '';
+            let {from, to} = state.selection;
+            // These are in screen coordinates
+            let start = view.coordsAtPos(from), end = view.coordsAtPos(to);
+            // The box in which the tooltip is positioned, to use as base
+            let box = this.tooltip.offsetParent.getBoundingClientRect();
+            // Find a center-ish x position from the selection endpoints (when
+            // crossing lines, end may be more to the left)
+            let left = Math.max((start.left + end.left) / 2, start.left + 3);
+
+            const tooltipActionsHolder = document.createElement('div');
+
+            const tooltipActions = [
+                'add-note',
+                'add-to-flash-cards',
+                'translate'
+            ];
+
+            tooltipActions.forEach((action) => {
+                const tooltipAction = document.createElement('div');
+                tooltipAction.classList = `action ${action}`;
+                tooltipAction.dataset.actionId = action;
+                tooltipActionsHolder.appendChild(tooltipAction);
+            });
+
+            this.tooltip.style.left = (left - box.left) + 'px';
+            this.tooltip.style.bottom = (box.bottom - start.top + 4) + 'px';
+            this.tooltip.innerHTML = tooltipActionsHolder.innerHTML;
+
+            hideAccessory('addNote');
+            hideAccessory('translateResult');
+
+            window.lastSelectedText = window.getSelection().toString();
         }
-
-        // Otherwise, reposition it and update its content
-        this.tooltip.style.display = '';
-        let {from, to} = state.selection;
-        // These are in screen coordinates
-        let start = view.coordsAtPos(from), end = view.coordsAtPos(to);
-        // The box in which the tooltip is positioned, to use as base
-        let box = this.tooltip.offsetParent.getBoundingClientRect();
-        // Find a center-ish x position from the selection endpoints (when
-        // crossing lines, end may be more to the left)
-        let left = Math.max((start.left + end.left) / 2, start.left + 3);
-
-        const tooltipActionsHolder = document.createElement('div');
-
-        const tooltipActions = [
-            'add-note',
-            'add-to-flash-cards',
-            'translate'
-        ];
-
-        tooltipActions.forEach((action) => {
-            const tooltipAction = document.createElement('div');
-            tooltipAction.classList = `action ${action}`;
-            tooltipAction.dataset.actionId = action;
-            tooltipActionsHolder.appendChild(tooltipAction);
-        });
-
-        this.tooltip.style.left = (left - box.left) + 'px';
-        this.tooltip.style.bottom = (box.bottom - start.top + 4) + 'px';
-        this.tooltip.innerHTML = tooltipActionsHolder.innerHTML;
-
-        hideAccessory('addNote');
-        hideAccessory('translateResult');
-
-        window.lastSelectedText = window.getSelection().toString();
     }
 
     destroy() {
@@ -287,7 +299,7 @@ class tooltip {
 window.view = new EditorView(document.querySelector('#editor'), {
     state: EditorState.create({
         doc: DOMParser.fromSchema(schema).parse(document.querySelector('#content')),
-        plugins: exampleSetup({ schema }).concat(tooltipPlugin, annotationPlugin),
+        plugins: exampleSetup({ schema }).concat(tooltipPlugin, annotationPlugin)
     })
 });
 
