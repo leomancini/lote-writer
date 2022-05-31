@@ -1,19 +1,55 @@
-const { EditorState } = require('prosemirror-state')
-const { EditorView, Decoration, DecorationSet } = require('prosemirror-view')
-const { DOMParser } = require('prosemirror-model')
-const { Plugin } = require('prosemirror-state')
+const { EditorState } = require('prosemirror-state');
+const { EditorView, Decoration, DecorationSet } = require('prosemirror-view');
+const { DOMParser } = require('prosemirror-model');
+const { Plugin } = require('prosemirror-state');
 
-const { schema } = require('prosemirror-schema-basic')
-const { exampleSetup } = require('prosemirror-example-setup')
+const { schema } = require('prosemirror-schema-basic');
+const { exampleSetup } = require('prosemirror-example-setup');
 
-let tooltipPlugin = new Plugin({
-    view(editorView) {
-        return new tooltip(editorView);
-    }
-});
+function loadAnnotations() {
+    window.annotations = {
+        0: 'asd'
+    };
+
+    let annotatedTexts = document.querySelectorAll('.annotatedText');
+
+    annotatedTexts.forEach((annotatedText) => {
+        annotatedText.onmouseover = () => {
+            showAnnotationTooltip(annotatedText.dataset.annotationId);
+        }
+
+        annotatedText.onmouseout = () => {
+            hideAnnotationTooltip(annotatedText.dataset.annotationId);
+        }
+    });
+}
 
 function addNoteToAnnotation(annotationID, text) {
-    console.log(annotationID, text);
+    window.annotations[annotationID] = text;
+}
+
+function showAnnotationTooltip(annotationID) {
+    let annotatedText = document.querySelector(`.annotatedText[data-annotation-id='${annotationID}']`);
+
+    let viewAnnotationTooltipContainer = document.createElement('div');
+    viewAnnotationTooltipContainer.className = 'annotationTooltip';
+    viewAnnotationTooltipContainer.setAttribute('data-annotation-id', annotationID);
+
+    let text = document.createElement('div');
+    text.className = 'text';
+    text.innerText = window.annotations[annotationID];
+    viewAnnotationTooltipContainer.appendChild(text);
+
+    viewAnnotationTooltipContainer.style.left = `${annotatedText.offsetLeft + (annotatedText.offsetWidth / 2)}px`;
+    viewAnnotationTooltipContainer.style.top = `${annotatedText.offsetTop + 28}px`;
+
+    document.querySelector('#editor').appendChild(viewAnnotationTooltipContainer);
+
+    console.log(annotationID, window.annotations[annotationID]);
+}
+
+function hideAnnotationTooltip(annotationID) {
+    document.querySelector(`.annotationTooltip[data-annotation-id='${annotationID}']`).remove();
 }
 
 function addAnnotation(view) {
@@ -27,22 +63,26 @@ function addAnnotation(view) {
 
     view.dispatch(transaction);
 
+    let annotatedTexts = document.querySelectorAll('.annotatedText');
+
+    annotatedTexts.forEach((annotatedText) => {
+        annotatedText.onmouseover = () => {
+            showAnnotationTooltip(annotatedText.dataset.annotationId);
+        }
+
+        annotatedText.onmouseout = () => {
+            hideAnnotationTooltip(annotatedText.dataset.annotationId);
+        }
+    });
+
     return annotationID;
 }
-
-let annotatedTexts = document.querySelectorAll('.annotatedText');
-
-annotatedTexts.forEach((annotatedText) => {
-    annotatedText.onmouseover = () => {
-        console.log('asd');
-    }
-});
 
 let annotationPlugin = new Plugin({
     state: {
         init(_, { doc }) {
             let initialAnnotations = [
-                Decoration.inline(1, 5, { class: 'annotatedText' })
+                Decoration.inline(1, 5, { class: 'annotatedText', 'data-annotation-id': 0 })
             ];
 
             return DecorationSet.create(doc, initialAnnotations);
@@ -64,7 +104,7 @@ let annotationPlugin = new Plugin({
             return annotationPlugin.getState(state);
         }
     }
-})
+});
 
 function hideAccessory(type) {
     if (type === 'tooltip') {
@@ -85,6 +125,12 @@ document.onclick = (e) => {
         hideAccessory('translateResult');
     }
 };
+
+let tooltipPlugin = new Plugin({
+    view(editorView) {
+        return new tooltip(editorView);
+    }
+});
 
 class tooltip {
     constructor(view) {
@@ -241,6 +287,8 @@ class tooltip {
 window.view = new EditorView(document.querySelector('#editor'), {
     state: EditorState.create({
         doc: DOMParser.fromSchema(schema).parse(document.querySelector('#content')),
-        plugins: exampleSetup({ schema }).concat(tooltipPlugin, annotationPlugin)
+        plugins: exampleSetup({ schema }).concat(tooltipPlugin, annotationPlugin),
     })
 });
+
+loadAnnotations();
