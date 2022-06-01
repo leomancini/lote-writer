@@ -1,16 +1,12 @@
 const { EditorState } = require('prosemirror-state');
 const { EditorView, Decoration, DecorationSet } = require('prosemirror-view');
 const { DOMParser } = require('prosemirror-model');
-const { Plugin } = require('prosemirror-state');
+const { Plugin, PluginKey } = require('prosemirror-state');
 
 const { schema } = require('prosemirror-schema-basic');
 const { exampleSetup } = require('prosemirror-example-setup');
 
-function loadAnnotations() {
-    window.annotations = {
-        0: 'asd'
-    };
-
+function initalizeAnnotations() {
     let annotatedTexts = document.querySelectorAll('.annotatedText');
 
     annotatedTexts.forEach((annotatedText) => {
@@ -26,16 +22,16 @@ function loadAnnotations() {
     });
 }
 
-function addNoteToAnnotation(annotationID, text) {
-    window.annotations[annotationID] = text;
+function addTextToAnnotation(annotationId, text) {
+    window.annotations[annotationId].text = text;
 }
 
-function showAnnotationTooltip(annotationID) {
-    let annotatedText = document.querySelector(`.annotatedText[data-annotation-id='${annotationID}']`);
+function showAnnotationTooltip(annotationId) {
+    let annotatedText = document.querySelector(`.annotatedText[data-annotation-id='${annotationId}']`);
 
     let viewAnnotationTooltipContainer = document.createElement('div');
     viewAnnotationTooltipContainer.className = 'annotationTooltipContainer';
-    viewAnnotationTooltipContainer.setAttribute('data-annotation-id', annotationID);
+    viewAnnotationTooltipContainer.setAttribute('data-annotation-id', annotationId);
 
     let tooltip = document.createElement('div');
     tooltip.className = 'annotationTooltip';
@@ -43,36 +39,40 @@ function showAnnotationTooltip(annotationID) {
 
     let text = document.createElement('div');
     text.className = 'text';
-    text.innerText = window.annotations[annotationID];
+    text.innerText = window.annotations[annotationId].text;
     tooltip.appendChild(text);
 
-    viewAnnotationTooltipContainer.style.left = `${annotatedText.offsetLeft - 16}px`;
-    viewAnnotationTooltipContainer.style.width = `${annotatedText.offsetWidth + 32}px`;
-    viewAnnotationTooltipContainer.style.top = `${annotatedText.offsetTop + annotatedText.offsetHeight}px`;
-
     viewAnnotationTooltipContainer.onmouseout = (e) => {
-        hideAnnotationTooltip(annotationID);
+        hideAnnotationTooltip(annotationId);
     }
 
-    if (window.annotations[annotationID]) {
+    if (window.annotations[annotationId]) {
         document.querySelector('#editor').appendChild(viewAnnotationTooltipContainer);
-
-        console.log(annotationID, window.annotations[annotationID]);
+        viewAnnotationTooltipContainer.style.left = `${annotatedText.offsetLeft - ((viewAnnotationTooltipContainer.offsetWidth - annotatedText.offsetWidth)/2)}px`;
+        viewAnnotationTooltipContainer.style.top = `${annotatedText.offsetTop + annotatedText.offsetHeight}px`;
     }
 }
 
-function hideAnnotationTooltip(annotationID) {
-    document.querySelector(`.annotationTooltipContainer[data-annotation-id='${annotationID}']`).remove();
+function hideAnnotationTooltip(annotationId) {
+    document.querySelector(`.annotationTooltipContainer[data-annotation-id='${annotationId}']`).remove();
 }
 
 function addAnnotation(view) {
-    let annotationID = Date.now();
+    let annotationId = Date.now();
+
+    let fromPos = view.state.selection.$from.pos;
+    let toPos = view.state.selection.$to.pos;
 
     let transaction = view.state.tr.setMeta('annotationPlugin', {
-        fromPos: view.state.selection.$from.pos,
-        toPos: view.state.selection.$to.pos,
-        annotationID
+        fromPos,
+        toPos,
+        annotationId
     });
+
+    window.annotations[annotationId] = {
+        fromPos,
+        toPos
+    };
 
     view.dispatch(transaction);
 
@@ -90,27 +90,39 @@ function addAnnotation(view) {
         }
     });
 
-    return annotationID;
+    return annotationId;
 }
 
-let annotationPlugin = new Plugin({
-    state: {
-        init(_, { doc }) {
-            let initialAnnotations = [
-                Decoration.inline(1, 5, { class: 'annotatedText', 'data-annotation-id': 0 })
-            ];
 
-            return DecorationSet.create(doc, initialAnnotations);
+const annotationPluginKey = new PluginKey('annotation');
+
+let annotationPlugin = new Plugin({
+    key: annotationPluginKey,
+    state: {
+        init(_, state) {
+            const { doc }  = state;
+
+            if (window.annotations) {
+                let initialAnnotations = Object.keys(window.annotations).map((annotationId) => {
+                    let { fromPos, toPos } = window.annotations[annotationId];
+
+                    return Decoration.inline(fromPos, toPos, { class: 'annotatedText', 'data-annotation-id': annotationId });
+                });
+
+                return DecorationSet.create(doc, initialAnnotations);               
+            }
         },
         apply(tr, set) {
-            if (tr.getMeta('annotationPlugin')) {
-                const { fromPos, toPos, annotationID } = tr.getMeta('annotationPlugin');
+            if (window.annotations) {
+                if (tr.getMeta('annotationPlugin')) {
+                    const { fromPos, toPos, annotationId } = tr.getMeta('annotationPlugin');
 
-                return set.add(tr.doc, [
-                    Decoration.inline(fromPos, toPos, { class: 'annotatedText', 'data-annotation-id': annotationID  })
-                ]);
-            } else {
-                return set.map(tr.mapping, tr.doc);
+                    return set.add(tr.doc, [
+                        Decoration.inline(fromPos, toPos, { class: 'annotatedText', 'data-annotation-id': annotationId  })
+                    ]);
+                } else {
+                    return set.map(tr.mapping, tr.doc);
+                }
             }
         }
     },
@@ -173,14 +185,16 @@ class tooltip {
                     field.className = 'field';
                     addNoteContainer.appendChild(field);
 
-                    let annotationID = addAnnotation(view);
+                    let annotationId = addAnnotation(view);
 
                     field.onkeydown = (e) => {
                         if (e.key === 'Enter') {
                             e.preventDefault();
                             addNoteContainer.remove();
 
-                            addNoteToAnnotation(annotationID, field.innerText);
+                            addTextToAnnotation(annotationId, field.innerText);
+
+                            savePage();
                         }
                     }
 
@@ -216,7 +230,7 @@ class tooltip {
                         })
                     };
 
-                    fetch('http://localhost:3000/translate', requestOptions)
+                    fetch(`${window.server}/translate`, requestOptions)
                         .then(response => response.json())
                         .then(result => {
                             let translatedText = result.data[0].translatedText;
@@ -296,11 +310,67 @@ class tooltip {
     }
 }
 
-window.view = new EditorView(document.querySelector('#editor'), {
-    state: EditorState.create({
-        doc: DOMParser.fromSchema(schema).parse(document.querySelector('#content')),
-        plugins: exampleSetup({ schema }).concat(tooltipPlugin, annotationPlugin)
-    })
-});
+async function loadData() {
+    let pageId = window.location.hash.replace('#', '');
 
-loadAnnotations();
+    const request = await fetch(`${window.server}/getPage?id=${pageId}`);
+    const response = await request.json();
+
+    return response.page.data;
+}
+
+async function savePage() {
+    let pageId = window.location.hash.replace('#', '');
+
+    // Get latest annotation positions before saving
+    window.view.state[annotationPlugin.key].find().map((annotationDecoration) => {
+        let annotationId = annotationDecoration.type.attrs['data-annotation-id'];
+
+        window.annotations[annotationId].fromPos = annotationDecoration.from;
+        window.annotations[annotationId].toPos = annotationDecoration.to;
+    });
+
+    let requestOptions = {
+        method: 'POST',
+        headers: new Headers({
+            'Content-Type': 'application/json'
+        }),
+        body: JSON.stringify({
+            data: {
+                content: window.view.state.doc,
+                annotations: window.annotations
+            }
+        })
+    };
+
+    fetch(`${window.server}/updatePage?id=${pageId}`, requestOptions)
+        .then(response => response.json())
+        .then(result => {
+            if (result.success && result.modified > 0) {
+                console.log('Saved page!');
+            }
+        })
+        .catch(error => console.log('error', error));
+}
+
+document.querySelector('#editor').onkeyup = savePage;
+
+async function initialize() {
+    window.server = 'http://localhost:3000';
+
+    let { annotations, content } = await loadData();
+
+    window.annotations = annotations;
+
+    window.view = new EditorView(document.querySelector('#editor'), {
+        state: EditorState.create({
+            doc: schema.nodeFromJSON(content),
+            plugins: exampleSetup({ schema }).concat(tooltipPlugin, annotationPlugin)
+        }),
+        attributes: { spellcheck: false }
+    });
+
+    initalizeAnnotations();
+}
+
+initialize();
