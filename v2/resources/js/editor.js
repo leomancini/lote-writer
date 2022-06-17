@@ -1,7 +1,7 @@
 const { EditorState } = require('prosemirror-state');
 const { EditorView, Decoration, DecorationSet } = require('prosemirror-view');
 const { DOMParser } = require('prosemirror-model');
-const { Plugin, PluginKey } = require('prosemirror-state');
+const { Plugin, PluginKey, Selection, TextSelection, NodeSelection } = require('prosemirror-state');
 
 const { schema } = require('prosemirror-schema-basic');
 const { exampleSetup } = require('prosemirror-example-setup');
@@ -311,7 +311,7 @@ class tooltip {
 }
 
 async function loadData() {
-    let pageId = window.location.hash.replace('#', '');
+    let pageId = window.pageId;
 
     const request = await fetch(`${window.server}/getPage?id=${pageId}`);
     const response = await request.json();
@@ -320,15 +320,19 @@ async function loadData() {
 }
 
 async function savePage() {
-    let pageId = window.location.hash.replace('#', '');
+    let pageId = window.pageId;
 
     // Get latest annotation positions before saving
-    window.view.state[annotationPlugin.key].find().map((annotationDecoration) => {
-        let annotationId = annotationDecoration.type.attrs['data-annotation-id'];
+    if (window.view.state[annotationPlugin.key]) {
+        window.view.state[annotationPlugin.key].find().map((annotationDecoration) => {
+            let annotationId = annotationDecoration.type.attrs['data-annotation-id'];
 
-        window.annotations[annotationId].fromPos = annotationDecoration.from;
-        window.annotations[annotationId].toPos = annotationDecoration.to;
-    });
+            window.annotations[annotationId].fromPos = annotationDecoration.from;
+            window.annotations[annotationId].toPos = annotationDecoration.to;
+        });
+    }
+
+    console.log(window.annotations);
 
     let requestOptions = {
         method: 'POST',
@@ -356,12 +360,14 @@ async function savePage() {
 document.querySelector('#editor').onkeyup = savePage;
 
 async function initialize() {
-    window.server = 'http://localhost:3000';
+    window.annotations = {}
 
     let { annotations, content } = await loadData();
 
-    window.annotations = annotations;
-
+    if (annotations !== null) {
+        window.annotations = annotations;    
+    }
+    
     window.view = new EditorView(document.querySelector('#editor'), {
         state: EditorState.create({
             doc: schema.nodeFromJSON(content),

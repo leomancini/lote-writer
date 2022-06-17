@@ -1,0 +1,4 @@
+RewriteEngine on
+
+RewriteRule ^$ views/index.php [L]
+RewriteRule ^pages/([a-zA-Z0-9_-]+)$ views/editor.php?page=$1 [QSA]
