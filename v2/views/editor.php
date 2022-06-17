@@ -12,10 +12,8 @@
 		</script>
 	</head>
 	<body>
-		<a href='../'>
-			<div id='backToIndex'>
-				<div class='icon'></div>
-			</div>
+		<a href='../' id='backToIndex'>
+			<div class='icon'></div>
 		</a>
 		<div id='toolbar'>
 			<div id='leftMenuItems'></div>
